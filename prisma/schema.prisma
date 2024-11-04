@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id                       Int               @id @default(autoincrement())
+  userName                 String            @unique
+  firstName                String
+  secondName               String?
+  lastName                 String
+  gender                   String
+  dateOfBirth              DateTime
+  acceptTermsAndConditions Boolean
+  acceptNewsLatters        Boolean
+  qualification            Float             @default(0)
+  email                    String            @unique
+  password                 String
+  accountCreatedAt         DateTime          @default(now())
+  profilePhoto             String?
+  totalLikes               Int               @default(0)
+  phoneNumber              String
+  country                  String
+  city                     String
+  publications             Publications[] // One-to-many relation
+  likes                    Likes[] // One-to-many relation
+  searchHistorial          SearchHistorial[]
+  followers                Follow[]          @relation("Following")
+  following                Follow[]          @relation("Followed")
+  notifications            Notifications[]
+  swap                     Swap[]            @relation("Desired")
+  swapOffered              Swap[]            @relation("Offered")
+  ChatRoomRecipient        ChatRoom[]        @relation("recipient")
+  ChatRoomSender           ChatRoom[]        @relation("sender")
+  Messages                 Messages[]
+  views                    View[]
+  rating                   Rating[]          @relation("qualified")
+  ratingsGiven             Rating[]          @relation("ratedBy")
+  communityBuilder         Communities[]     @relation("creator") 
+  communities              Communities[]     @relation("members") 
+}
+
+
+model Swap {
+  id            Int          @id @default(autoincrement())
+  relatedPostId Int
+  relatedPost   Publications @relation("Desired", fields: [relatedPostId], references: [id])
+  offeredId     Int
+  swapState     String       @default("awaiting")
+  offeredPost   Publications @relation("Offered", fields: [offeredId], references: [id])
+  dateTime      DateTime     @default(now())
+  relatedUserId Int
+  relatedUser   Users        @relation("Desired", fields: [relatedUserId], references: [id])
+  offeredUserId Int
+  offeredUser   Users        @relation("Offered", fields: [offeredUserId], references: [id])
+}
+
+model Notifications {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  user      Users      @relation(fields: [userId], references: [id])
+  content   String
+  isRead    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  sender    ChatRoom[] @relation("NotificationSender")
+  messages  Messages[]
+  chatRoom  ChatRoom[] @relation("NotificationChatRoom")
+}
+
+model ChatRoom {
+  id                      Int            @id @default(autoincrement())
+  sender                  Users          @relation("sender", fields: [senderId], references: [id])
+  senderId                Int
+  recipient               Users          @relation("recipient", fields: [recipientId], references: [id])
+  recipientId             Int
+  messages                Messages[]
+  notificationsSent       Notifications? @relation("NotificationSender", fields: [notificationsSentId], references: [id])
+  notificationsSentId     Int?
+  notificationsReceived   Notifications? @relation("NotificationChatRoom", fields: [notificationsReceivedId], references: [id])
+  notificationsReceivedId Int?
+}
+
+model Messages {
+  id              Int            @id @default(autoincrement())
+  content         String?
+  img             String?
+  createdAt       DateTime       @default(now())
+  sendById        Int
+  chatRoomId      Int
+  sendBy          Users          @relation(fields: [sendById], references: [id])
+  chatRoom        ChatRoom       @relation(fields: [chatRoomId], references: [id])
+  notifications   Notifications? @relation(fields: [notificationsId], references: [id])
+  notificationsId Int?
+}
+
+model Follow {
+  id           Int   @id @default(autoincrement())
+  follower     Users @relation("Followed", fields: [followerById], references: [id])
+  followerById Int
+  followed     Users @relation("Following", fields: [followedById], references: [id])
+  followedById Int
+}
+
+model Rating {
+  id              Int   @id @default(autoincrement())
+  rating          Int
+  qualifiedUser   Users @relation("qualified", references: [id], fields: [qualifiedUserId])
+  qualifiedUserId Int
+  ratedBy         Users @relation("ratedBy", references: [id], fields: [ratedById])
+  ratedById       Int
+}
+
+model Publications {
+  id                Int          @id @default(autoincrement())
+  createdBy         Users        @relation(fields: [createdById], references: [id])
+  createdById       Int
+  title             String
+  description       String
+  country           String
+  city              String
+  current_condition String
+  gender            String
+  size              String?
+  usage_time        String?
+  primary_color     String?
+  brand             String?
+  reserved          String       @default("No")
+  publicatedAt      DateTime     @default(now())
+  categories        Categories[] //Many-to-many relation
+  likes             Likes[] //One-to-many relation
+  tags              Tags[] //Many-to-many relation
+  image             Image[] // One to many relation
+  swap              Swap[]       @relation("Desired")
+  swapOffered       Swap[]       @relation("Offered")
+  views             View[]
+}
+
+model Image {
+  id            Int          @id @default(autoincrement())
+  base64        String       @db.LongText
+  publication   Publications @relation(fields: [publicationId], references: [id])
+  publicationId Int
+}
+
+model Categories {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  publications Publications[] // Many-to-Many
+}
+
+model Likes {
+  id            Int          @id @default(autoincrement())
+  reactionTime  DateTime     @default(now())
+  liked         Boolean      @default(true)
+  user          Users        @relation(fields: [userId], references: [id])
+  userId        Int
+  publication   Publications @relation(fields: [publicationId], references: [id])
+  publicationId Int
+}
+
+model View {
+  id            Int          @id @default(autoincrement())
+  createdAt     DateTime     @default(now())
+  publication   Publications @relation(fields: [publicationId], references: [id])
+  publicationId Int
+  user          Users        @relation(fields: [userId], references: [id])
+  userId        Int
+}
+
+model Tags {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  publications Publications[] // Many-to-Many
+}
+
+model ResetPassword {
+  id        Int      @id @default(autoincrement())
+  token     Int
+  email     String
+  createdAt DateTime @default(now())
+}
+
+model SearchHistorial {
+  id           Int      @id @default(autoincrement())
+  search       String
+  searchedById Int
+  searchedAt   DateTime @default(now())
+  searchedBy   Users    @relation(fields: [searchedById], references: [id])
+}
+
+model Communities {
+  id              Int      @id @unique @default(autoincrement())
+  name            String
+  maxClothes      Int
+  Date            DateTime
+  type            String
+  theme           String?
+  location        String?
+  maximumCapacity Int
+  creator         Users    @relation("creator", fields: [creatorId], references: [id]) 
+  creatorId       Int
+  members         Users[]  @relation("members")
+}
+
+
+model FrontGenre {
+  id               Int                @id @default(autoincrement())
+  genre            String             @unique
+  icon             String
+  FrontProductType FrontProductType[]
+}
+
+model FrontCondition {
+  id        Int    @id @default(autoincrement())
+  condition String
+  icon      String
+}
+
+model FrontProductType {
+  id              Int               @id @unique @default(autoincrement())
+  type            String
+  genre           String
+  icon            String
+  FrontGenre      FrontGenre        @relation(fields: [genre], references: [genre])
+  FrontCategories FrontCategories[]
+}
+
+model FrontCategories {
+  id               Int              @id @unique @default(autoincrement())
+  categories       String
+  typeId           Int
+  FrontProductType FrontProductType @relation(fields: [typeId], references: [id])
+  icon             String
+}
+
+
