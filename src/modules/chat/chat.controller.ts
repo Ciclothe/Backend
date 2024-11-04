@@ -11,7 +11,7 @@ export class ChatController {
   @Get()
   getChats(@Req() req: Request) {
     return this.chatService.findUserChats(req);
-  }
+  } 
 
   @UseGuards(JwtAuthGuard)
   @Get('messages/:chatRoomId')
