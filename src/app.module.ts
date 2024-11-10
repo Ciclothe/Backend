@@ -11,6 +11,7 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { HomeModule } from './modules/home/home.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ConfigModule } from '@nestjs/config';
+import { CommunitiesModule } from './modules/communities/communities.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true, 
     }),
+    CommunitiesModule,
   ],
   controllers: [],
   providers: [JwtStrategy],
