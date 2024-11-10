@@ -15,6 +15,7 @@ export class CommunitiesService {
 
   async getAllCommunities() {
     try {
+      //TODO: Implement pagination and algorithm to retrieve top communities
       return await this.prisma.communities.findMany();
     } catch (error) {
       throw new InternalServerErrorException('Failed to retrieve communities');
@@ -27,11 +28,12 @@ export class CommunitiesService {
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     try {
+      //Create new community
       return await this.prisma.communities.create({
         data: {
           name: community.name,
           description: community.description,
-          creatorId: decodeToken.id
+          creatorId: decodeToken.id,
         },
       });
     } catch (error) {
@@ -41,12 +43,16 @@ export class CommunitiesService {
 
   async editCommunity(id: number, community: CommunitiesDto) {
     try {
+
+      //Check if community exists
       const existingCommunity = await this.prisma.communities.findUnique({
         where: { id },
       });
       if (!existingCommunity) {
         throw new NotFoundException(`Community with ID ${id} not found`);
       }
+
+      //Update community
       return await this.prisma.communities.update({
         where: { id },
         data: {
@@ -64,12 +70,14 @@ export class CommunitiesService {
 
   async deleteCommunity(id: number) {
     try {
+      //Check if community exists
       const existingCommunity = await this.prisma.communities.findUnique({
         where: { id },
       });
       if (!existingCommunity) {
         throw new NotFoundException(`Community with ID ${id} not found`);
       }
+      //Delete community
       return await this.prisma.communities.delete({
         where: { id },
       });
@@ -78,21 +86,6 @@ export class CommunitiesService {
         throw error;
       }
       throw new InternalServerErrorException('Failed to delete community');
-    }
-  }
-
-  async searchCommunities(name: string) {
-    try {
-      return await this.prisma.communities.findMany({
-        where: {
-          name: {
-            contains: name,
-            mode: 'insensitive',
-          },
-        },
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Failed to search communities');
     }
   }
 }
