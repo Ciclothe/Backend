@@ -12,6 +12,7 @@ import { HomeModule } from './modules/home/home.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ConfigModule } from '@nestjs/config';
 import { CommunitiesModule } from './modules/communities/communities.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CommunitiesModule } from './modules/communities/communities.module';
       isGlobal: true, 
     }),
     CommunitiesModule,
+    EventsModule,
   ],
   controllers: [],
   providers: [JwtStrategy],
