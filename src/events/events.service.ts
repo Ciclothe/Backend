@@ -16,6 +16,9 @@ export class EventsService {
   }
 
   async getEventById(id: number) {
+
+    id = Number(id);
+    
     //Search event by id
     const event = await this.prisma.events.findUnique({
       where: { id },
@@ -53,6 +56,9 @@ export class EventsService {
   }
 
   async updateEvent(id: number, updateEventDto: UpdateEventDto) {
+
+    id = Number(id);
+
     //Check if event exists
     const existingEvent = await this.prisma.events.findUnique({ where: { id } });
     if (!existingEvent) {
@@ -67,6 +73,9 @@ export class EventsService {
   }
 
   async deleteEvent(id: number) {
+
+    id = Number(id);
+    
     //Check if event exists
     const existingEvent = await this.prisma.events.findUnique({ where: { id } });
     if (!existingEvent) {

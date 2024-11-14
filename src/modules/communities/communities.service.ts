@@ -42,6 +42,9 @@ export class CommunitiesService {
   }
 
   async editCommunity(id: number, community: CommunitiesDto) {
+
+    id = Number(id);
+
     //Check if community exists
     const existingCommunity = await this.prisma.communities.findUnique({
       where: { id },
@@ -61,6 +64,9 @@ export class CommunitiesService {
   }
 
   async deleteCommunity(id: number) {
+
+    id = Number(id);
+    
     //Check if community exists
     const existingCommunity = await this.prisma.communities.findUnique({
       where: { id },
