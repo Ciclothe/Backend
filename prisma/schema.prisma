@@ -40,10 +40,11 @@ model Users {
   views                    View[]
   rating                   Rating[]          @relation("qualified")
   ratingsGiven             Rating[]          @relation("ratedBy")
-  communityBuilder         Communities[]     @relation("creator") 
-  communities              Communities[]     @relation("members") 
+  eventBuilder             Events[]          @relation("creator")
+  events                   Events[]          @relation("members")
+  communitiesBuilder       Communities[]     @relation("creator")
+  communities              Communities[]     @relation("members")
 }
-
 
 model Swap {
   id            Int          @id @default(autoincrement())
@@ -115,8 +116,8 @@ model Rating {
 }
 
 model Publications {
-  id                Int          @id @default(autoincrement())
-  createdBy         Users        @relation(fields: [createdById], references: [id])
+  id                Int           @id @default(autoincrement())
+  createdBy         Users         @relation(fields: [createdById], references: [id])
   createdById       Int
   title             String
   description       String
@@ -128,15 +129,17 @@ model Publications {
   usage_time        String?
   primary_color     String?
   brand             String?
-  reserved          String       @default("No")
-  publicatedAt      DateTime     @default(now())
+  reserved          String        @default("No")
+  publicatedAt      DateTime      @default(now())
   categories        Categories[] //Many-to-many relation
   likes             Likes[] //One-to-many relation
   tags              Tags[] //Many-to-many relation
   image             Image[] // One to many relation
-  swap              Swap[]       @relation("Desired")
-  swapOffered       Swap[]       @relation("Offered")
+  swap              Swap[]        @relation("Desired")
+  swapOffered       Swap[]        @relation("Offered")
   views             View[]
+  communities       Communities[]
+  events            Events[]
 }
 
 model Image {
@@ -192,20 +195,31 @@ model SearchHistorial {
   searchedBy   Users    @relation(fields: [searchedById], references: [id])
 }
 
-model Communities {
-  id              Int      @id @unique @default(autoincrement())
-  name            String
+model Events {
+  id              Int            @id @unique @default(autoincrement())
+  name            String         @unique
+  description     String
   maxClothes      Int
   Date            DateTime
   type            String
   theme           String?
   location        String?
   maximumCapacity Int
-  creator         Users    @relation("creator", fields: [creatorId], references: [id]) 
+  creator         Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId       Int
-  members         Users[]  @relation("members")
+  members         Users[]        @relation("members")
+  publications    Publications[]
 }
 
+model Communities {
+  id           Int            @id @unique @default(autoincrement())
+  name         String         @unique
+  description  String
+  creator      Users          @relation("creator", fields: [creatorId], references: [id])
+  creatorId    Int
+  members      Users[]        @relation("members")
+  publications Publications[]
+}
 
 model FrontGenre {
   id               Int                @id @default(autoincrement())
@@ -236,5 +250,3 @@ model FrontCategories {
   FrontProductType FrontProductType @relation(fields: [typeId], references: [id])
   icon             String
 }
-
-
