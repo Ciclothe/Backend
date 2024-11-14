@@ -197,7 +197,7 @@ model SearchHistorial {
 
 model Events {
   id              Int            @id @unique @default(autoincrement())
-  name            String
+  name            String         @unique
   description     String
   maxClothes      Int
   Date            DateTime
@@ -213,7 +213,7 @@ model Events {
 
 model Communities {
   id           Int            @id @unique @default(autoincrement())
-  name         String
+  name         String         @unique
   description  String
   creator      Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId    Int
