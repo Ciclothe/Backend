@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto, UpdateEventDto } from './dto/events.dto';
 import { Request } from 'express';
@@ -12,13 +16,32 @@ export class EventsService {
   async getAllEvents() {
     //TODO: Implement pagination and algorithm to retrieve top events
     //Search all events
-    return this.prisma.events.findMany();
+    return this.prisma.events.findMany({
+      include: {
+        creator: {
+          select: {
+            id: true,
+            userName: true,
+            email: true,
+            profilePhoto: true,
+          },
+        },
+        members: {
+          select: {
+            id: true,
+            userName: true,
+            email: true,
+            profilePhoto: true,
+          },
+        },
+        publications: true,
+      },
+    });
   }
 
   async getEventById(id: number) {
-
     id = Number(id);
-    
+
     //Search event by id
     const event = await this.prisma.events.findUnique({
       where: { id },
@@ -34,7 +57,6 @@ export class EventsService {
   }
 
   async createEvent(createEventDto: CreateEventDto, req: Request) {
-
     //Verify if the event already exists
     const existingEvent = await this.prisma.events.findUnique({
       where: { name: createEventDto.name },
@@ -46,7 +68,7 @@ export class EventsService {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-    
+
     createEventDto.creatorId = decodeToken.id;
 
     //Create event
@@ -56,11 +78,12 @@ export class EventsService {
   }
 
   async updateEvent(id: number, updateEventDto: UpdateEventDto) {
-
     id = Number(id);
 
     //Check if event exists
-    const existingEvent = await this.prisma.events.findUnique({ where: { id } });
+    const existingEvent = await this.prisma.events.findUnique({
+      where: { id },
+    });
     if (!existingEvent) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
@@ -73,11 +96,12 @@ export class EventsService {
   }
 
   async deleteEvent(id: number) {
-
     id = Number(id);
-    
+
     //Check if event exists
-    const existingEvent = await this.prisma.events.findUnique({ where: { id } });
+    const existingEvent = await this.prisma.events.findUnique({
+      where: { id },
+    });
     if (!existingEvent) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
