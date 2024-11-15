@@ -1,18 +1,19 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PublicationDto, EditPublicationDto } from './dto/posts.dto';
+import {  EditPublicationDto } from './dto/posts.dto';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Publication } from './types/post';
 
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
 
-  async createPost(publication: PublicationDto, req: Request) {
+  async createPost(publication: Publication, req: Request) {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
