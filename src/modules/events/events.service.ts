@@ -3,11 +3,11 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto, UpdateEventDto } from './dto/events.dto';
 import { Request } from 'express';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class EventsService {

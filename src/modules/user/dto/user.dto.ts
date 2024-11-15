@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
@@ -22,14 +23,17 @@ export class ChangeDto {
 }
 
 export class ChangeSensitiveInformationDto {
+  @ApiProperty({description: 'User password'})
   @IsNotEmpty()
   @IsString()
   password: string;
 
+  @ApiProperty({description: 'User email'})
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiProperty({description: 'User new password'})
   @IsOptional()
   @IsString()
   newPassword?: string;
