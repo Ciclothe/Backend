@@ -25,7 +25,6 @@ export class PostsController {
   constructor(private postService: PostsService) {}
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a post' })
   @Post()
   createPost(
@@ -56,18 +55,16 @@ export class PostsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Edit post' })
   @Patch()
+  @ApiOperation({ summary: 'Edit post' })
   editPost(@Body() publication: EditPublicationDto, @Req() req: Request) {
     return this.postService.updatePost(publication, req);
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @Delete()
   @ApiOperation({ summary: 'Delete post' })
   @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
-  @Delete()
   deletePost(
     @Body('publicationId') publicationId: number,
     @Req() req: Request,
@@ -76,19 +73,17 @@ export class PostsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @Patch('likes')
   @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
   @ApiOperation({ summary: 'Add a like to a post' })
-  @Patch('likes')
   updateLikes(@Req() req: Request, @Body() publicationId: number) {
     return this.postService.updateLikes(publicationId, req);
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Add a view to a post' })
-  @ApiBearerAuth()
-  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
   @Post('views')
+  @ApiOperation({ summary: 'Add a view to a post' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
   addView(@Req() req: Request, @Body() publicationId: number) {
     return this.postService.addView(publicationId, req);
   }

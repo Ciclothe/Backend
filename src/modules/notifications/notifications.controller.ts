@@ -13,6 +13,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
+import { ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -20,6 +21,8 @@ export class NotificationsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @ApiOperation({ summary: 'Create notification' })
+  @ApiBody({ type: String })
   createNotification(@Body() notificationMessage: string, @Req() req: Request) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
@@ -33,6 +36,7 @@ export class NotificationsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiOperation({ summary: 'Get notifications' })
   getNotifications(@Req() req: Request) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
@@ -43,12 +47,14 @@ export class NotificationsController {
 
   @UseGuards(JwtAuthGuard)
   @Put()
+  @ApiOperation({ summary: 'Update notification' })
   updateNotification(@Body() notificationId: number) {
     return this.notificationsService.markAsRead(notificationId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete()
+  @ApiOperation({ summary: 'Delete notification' })
   deleteNotification(@Body() notificationId: number) {
     return this.notificationsService.deleteNotification(notificationId);
   }
