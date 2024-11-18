@@ -33,16 +33,18 @@ export class PostsController {
     @Req() req: Request,
   ) {
 
-    const categories: string[] = [postDetails.categories.genre.name, postDetails.categories.type.name, postDetails.categories.category.name]
-   
+    const categories: string[] = [postDetails.categories.genre, postDetails.categories.type, postDetails.categories.category]
+   console.log(postDetails)
     const publication: Publication = {
       title : postDetails.description.title,
       categories,
       city: postDetails.description.location.city,
       country: postDetails.description.location.country,
+      address: postDetails.description.location.address,
+      postalCode: postDetails.description.location.postalCode,
       currentCondition: postDetails.condition,
       description: postDetails.description.description,
-      gender: postDetails.categories.genre.name,
+      gender: postDetails.description.gender,
       brand: postDetails.description.brand,
       primary_color: postDetails.description.color.name,
       size: postDetails.description.size,

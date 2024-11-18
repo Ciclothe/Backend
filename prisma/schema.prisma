@@ -123,6 +123,9 @@ model Publications {
   description       String
   country           String
   city              String
+  address           String
+  longitude         Float
+  latitude          Float
   current_condition String
   gender            String
   size              String?
