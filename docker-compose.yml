@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: mysql://user:pass@db:3306/db  # mysql://root:Jctmjj1543**@localhost:3306/ciclothe
+      DATABASE_URL: mysql://user:pass@db:3306/db
     depends_on:
       - db
 
