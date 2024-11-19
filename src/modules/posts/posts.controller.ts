@@ -10,19 +10,22 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { EditPublicationDto, PostDetailsDto, PublicationDto} from './dto/posts.dto';
+import { EditPublicationDto, PostDetailsDto} from './dto/posts.dto';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Publication } from './types/post';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('posts')
 export class PostsController {
   constructor(private postService: PostsService) {}
 
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create a post' })
   @Post()
   createPost(
     @Body()
@@ -32,7 +35,7 @@ export class PostsController {
 
     const categories: string[] = [postDetails.categories.genre.name, postDetails.categories.type.name, postDetails.categories.category.name]
    
-    const publication: PublicationDto = {
+    const publication: Publication = {
       title : postDetails.description.title,
       categories,
       city: postDetails.description.location.city,
@@ -41,7 +44,7 @@ export class PostsController {
       description: postDetails.description.description,
       gender: postDetails.categories.genre.name,
       brand: postDetails.description.brand,
-      primary_color: postDetails.description.color,
+      primary_color: postDetails.description.color.name,
       size: postDetails.description.size,
       tags: postDetails.description.tags,
       usageTime: postDetails.description.usageTime,
@@ -53,12 +56,15 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch()
+  @ApiOperation({ summary: 'Edit post' })
   editPost(@Body() publication: EditPublicationDto, @Req() req: Request) {
     return this.postService.updatePost(publication, req);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete()
+  @ApiOperation({ summary: 'Delete post' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
   deletePost(
     @Body('publicationId') publicationId: number,
     @Req() req: Request,
@@ -68,12 +74,16 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('likes')
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
+  @ApiOperation({ summary: 'Add a like to a post' })
   updateLikes(@Req() req: Request, @Body() publicationId: number) {
     return this.postService.updateLikes(publicationId, req);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('views')
+  @ApiOperation({ summary: 'Add a view to a post' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
   addView(@Req() req: Request, @Body() publicationId: number) {
     return this.postService.addView(publicationId, req);
   }

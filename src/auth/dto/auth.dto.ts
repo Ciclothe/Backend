@@ -1,5 +1,4 @@
-
-
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -10,53 +9,66 @@ import {
 } from 'class-validator';
 
 export class UserRegisterDto {
+  @ApiProperty({ description: 'Email address of the user' })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
+  @ApiProperty({ description: 'First name of the user' })
   @IsNotEmpty()
   @IsString()
   firstName: string;
 
+  @ApiProperty({ description: 'Last name of the user' })
   @IsNotEmpty()
   @IsString()
   lastName: string;
 
+  @ApiProperty({ description: 'Second name of the user', required: false })
   @IsString()
   secondName: string;
 
+  @ApiProperty({ description: 'Gender of the user' })
   @IsNotEmpty()
   @IsString()
   gender: string;
 
+  @ApiProperty({ description: 'Password of the user' })
   @IsNotEmpty()
   @IsString()
   password: string;
 
+  @ApiProperty({ description: 'Username of the user' })
   @IsNotEmpty()
   @IsString()
   userName: string;
 
+  @ApiProperty({ description: 'Country of the user' })
   @IsNotEmpty()
-  @IsEmail()
+  @IsString()
   country: string;
 
+  @ApiProperty({ description: 'City of the user' })
   @IsNotEmpty()
-  @IsEmail()
+  @IsString()
   city: string;
 
+  @ApiProperty({ description: 'Whether the user wants to receive promotions' })
   @IsNotEmpty()
   @IsBoolean()
   receivePromotions: boolean;
 
+  @ApiProperty({ description: 'Whether the user accepts terms and conditions' })
   @IsNotEmpty()
   @IsBoolean()
   termsAndConditions: boolean;
 
+  @ApiProperty({ description: 'Date of birth of the user' })
   @IsNotEmpty()
   @IsDate()
   dob: Date;
 
+  @ApiProperty({ description: 'Phone number of the user' })
   @IsNotEmpty()
   @IsString()
   phoneNumber: string;
