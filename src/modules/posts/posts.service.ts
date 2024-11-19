@@ -24,7 +24,6 @@ export class PostsService {
       publication.longitude = geocoding.lng;
       publication.latitude = geocoding.lat;
 
-      console.log(publication);
       const newPublication = await this.prisma.publications.create({
         data: {
           title: publication.title,
@@ -68,7 +67,6 @@ export class PostsService {
         });
       }
 
-      console.log('Post published successfully');
       return 'Post published successfully';
     } catch (e) {
       console.error('Error in createPost:', e);

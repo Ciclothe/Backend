@@ -14,7 +14,7 @@ export class SearchPublicationsDto {
 }
 
 export class SearchIdDto {
-  @ApiProperty({description: 'id of the publication'})
+  @ApiProperty({description: 'id'})
   @IsInt()
   @IsNotEmpty()
   id: number;

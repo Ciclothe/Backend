@@ -34,7 +34,7 @@ export class PostsController {
   ) {
 
     const categories: string[] = [postDetails.categories.genre, postDetails.categories.type, postDetails.categories.category]
-   console.log(postDetails)
+
     const publication: Publication = {
       title : postDetails.description.title,
       categories,

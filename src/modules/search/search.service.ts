@@ -46,15 +46,11 @@ export class SearchService {
     // `
 
     // Find publications that match with the search
-    const searchPublicationsId: SearchIdDto[] = await this.prisma.$queryRaw`
-            SELECT id FROM publications
-            WHERE MATCH(title) AGAINST(${search} IN NATURAL LANGUAGE MODE)`;
-
-    // Find publications based on the ids  of searchPublicationsId
-    const searchPublications = await this.prisma.publications.findMany({
+    const searchPublications = this.prisma.publications.findMany({
       where: {
-        id: {
-          in: searchPublicationsId.map((publicationId) => publicationId.id),
+        title: {
+          contains: search,
+          // mode: 'insensitive',
         },
       },
       select: {
@@ -104,6 +100,10 @@ export class SearchService {
         },
       },
     });
+
+    if (!categories[0] && !tags[0] && !searchPublications[0]) {
+      return 'No results found';
+    }
 
     //Save all the publications in an array
     const allPublications = [].concat(
@@ -175,6 +175,39 @@ export class SearchService {
     });
 
     return postsOrdered;
+  }
+
+  async searchEvents(req: Request, search: string) {
+    return this.prisma.events.findMany({
+      where: {
+        name: {
+          contains: search,
+          // mode: 'insensitive',
+        },
+      },
+    });
+  }
+
+  async searchCommunities(req: Request, search: string) {
+    return this.prisma.communities.findMany({
+      where: {
+        name: {
+          contains: search,
+          // mode: 'insensitive',
+        },
+      },
+    });
+  }
+
+  async searchUsers(req: Request, search: string) {
+    return this.prisma.users.findMany({
+      where: {
+        userName: {
+          contains: search,
+          // mode: 'insensitive',
+        },
+      },
+    });
   }
 
   async deleteSearch(search: string, req: Request) {
