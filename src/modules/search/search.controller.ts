@@ -63,6 +63,13 @@ export class SearchController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('history')
+  @ApiOperation({ summary: 'Get search history' })
+  getSearchHistory(@Req() req: Request) {
+    return this.searchService.getSearchHistory(req);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete()
   @ApiOperation({ summary: 'Delete search' })
   @ApiBody({ schema: { properties: { search: { type: 'string' } } } })

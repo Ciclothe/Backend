@@ -16,27 +16,23 @@ import { ltdAndLong } from 'src/utils/LtdAndLong';
 export class SearchService {
   constructor(private prisma: PrismaService) {}
 
-  async searchPublications(req: Request, search: string, address?: string, postalCode?: string, radius?: string) {
+  async searchPublications(
+    req: Request,
+    search: string,
+    address?: string,
+    postalCode?: string,
+    radius?: string,
+  ) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    // Save the search in the history if it doesn't exist
-    const existingSearch = await this.prisma.searchHistorial.findFirst({
-      where: {
+    await this.prisma.searchHistorial.create({
+      data: {
         searchedById: decodeToken.id,
         search,
       },
     });
-
-    if (!existingSearch) {
-      await this.prisma.searchHistorial.create({
-        data: {
-          searchedById: decodeToken.id,
-          search,
-        },
-      });
-    }
 
     if (address && postalCode && radius) {
       const geocoding = await ltdAndLong(address, postalCode);
@@ -44,7 +40,7 @@ export class SearchService {
       const lat = geocoding.lat;
 
       const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
-   
+
       const publications = await this.prisma.$queryRaw`
         SELECT *, 
                ST_Distance_Sphere(
@@ -57,7 +53,7 @@ export class SearchService {
           AND (title LIKE ${`%${search}%`} OR description LIKE ${`%${search}%`})
         ORDER BY distance ASC;
       `;
-      
+
       return publications;
     }
 
@@ -200,6 +196,17 @@ export class SearchService {
     postalCode?: string,
     radius?: string,
   ) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.searchHistorial.create({
+      data: {
+        searchedById: decodeToken.id,
+        search,
+      },
+    });
+
     if (address && postalCode && radius) {
       const geocoding = await ltdAndLong(address, postalCode);
       const lng = geocoding.lng;
@@ -221,7 +228,7 @@ export class SearchService {
 
       return events;
     }
-    
+
     return this.prisma.events.findMany({
       where: {
         name: {
@@ -233,6 +240,17 @@ export class SearchService {
   }
 
   async searchCommunities(req: Request, search: string) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.searchHistorial.create({
+      data: {
+        searchedById: decodeToken.id,
+        search,
+      },
+    });
+
     return this.prisma.communities.findMany({
       where: {
         name: {
@@ -244,6 +262,17 @@ export class SearchService {
   }
 
   async searchUsers(req: Request, search: string) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.searchHistorial.create({
+      data: {
+        searchedById: decodeToken.id,
+        search,
+      },
+    });
+
     return this.prisma.users.findMany({
       where: {
         userName: {
@@ -252,6 +281,21 @@ export class SearchService {
         },
       },
     });
+  }
+
+  async getSearchHistory(req: Request) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    // Search the history of the user withouth duplicates
+    return await this.prisma.$queryRaw`
+      SELECT search, MAX(searchedAt) AS latestSearchedAt
+      FROM searchhistorial
+      WHERE searchedById = ${decodeToken.id}
+      GROUP BY search
+      ORDER BY latestSearchedAt DESC;
+    `;
   }
 
   async deleteSearch(search: string, req: Request) {
