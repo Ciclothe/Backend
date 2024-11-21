@@ -40,8 +40,9 @@ export class SearchController {
     @Query('search') search: string,
     @Query('addres') addres?: string,
     @Query('postalCode') postalCode?: string,
+    @Query('radius') radius?: string,
   ) {
-    return this.searchService.searchEvents(req, search);
+    return this.searchService.searchEvents(req, search, addres, postalCode, radius);
   }
 
   @UseGuards(JwtAuthGuard)

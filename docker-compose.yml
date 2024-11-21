@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: .
+    container_name: ciclothe_backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: mysql://user:pass@db:3306/db
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: ciclothe_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_DATABASE: db
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

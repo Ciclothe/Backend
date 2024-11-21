@@ -206,7 +206,9 @@ model Events {
   Date            DateTime
   type            String
   theme           String?
-  location        String?
+  addres        String?
+  latitude        Float
+  longitude       Float
   maximumCapacity Int
   creator         Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId       Int

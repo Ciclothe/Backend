@@ -33,7 +33,16 @@ export class CreateEventDto {
   @ApiProperty({description: 'Event location'})
   @IsString()
   @IsOptional()
-  location?: string;
+  addres?: string;
+
+  @ApiProperty({description: 'postal code'})
+  @IsString()
+  @IsOptional()
+  postalCode?: string;
+
+  latitude?: number;
+
+  longitude?: number;
 
   @ApiProperty({description: 'Event maximum capacity'}) 
   @IsInt()
@@ -78,7 +87,16 @@ export class UpdateEventDto {
   @ApiProperty({description: 'Event location'})
   @IsString()
   @IsOptional()
-  location?: string;
+  addres?: string;
+
+  @ApiProperty({description: 'postal code'})
+  @IsString()
+  @IsOptional()
+  postalCode?: string;
+
+  latitude?: number;
+
+  longitude?: number;
   
   @ApiProperty({description: 'Event maximum capacity'})
   @IsInt()

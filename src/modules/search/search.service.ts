@@ -10,6 +10,7 @@ import {
   PublicationsDto,
   UserPublicationDto,
 } from '../home/dto/home.dto';
+import { ltdAndLong } from 'src/utils/LtdAndLong';
 
 @Injectable()
 export class SearchService {
@@ -36,14 +37,6 @@ export class SearchService {
         },
       });
     }
-
-    //         const searchPublications = await this.prisma.$queryRaw`
-    //     SELECT publications.id, categories.name AS category
-    //     FROM publications
-    //     JOIN _categoriestopublications ON publications.id = _categoriestopublications.A
-    //     JOIN categories ON _categoriestopublications.B = categories.id
-    //     WHERE MATCH(publications.title) AGAINST(${search} IN NATURAL LANGUAGE MODE)
-    // `
 
     // Find publications that match with the search
     const searchPublications = this.prisma.publications.findMany({
@@ -177,7 +170,14 @@ export class SearchService {
     return postsOrdered;
   }
 
-  async searchEvents(req: Request, search: string) {
+  async searchEvents(req: Request, search: string, addres?: string, postalCode?: string, radius?: string) {
+
+    if(addres && postalCode && radius){
+      const geocoding = await ltdAndLong(addres, postalCode);
+      const lng = geocoding.lng;
+      const lat = geocoding.lat;
+    }
+
     return this.prisma.events.findMany({
       where: {
         name: {
