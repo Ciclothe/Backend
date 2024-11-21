@@ -58,18 +58,11 @@ export class EventsService {
   }
 
   async createEvent(createEvent: CreateEventDto, req: Request) {
-    //Verify if the event already exists
-    const existingEvent = await this.prisma.events.findUnique({
-      where: { name: createEvent.name },
-    });
-    if (existingEvent) {
-      throw new Error(`Event with name ${createEvent.name} already exists`);
-    }
-
+    
     //if the events is presencial
-    if(createEvent.addres){
+    if(createEvent.address){
 
-      const geocoding = await ltdAndLong(createEvent.addres, createEvent.postalCode);
+      const geocoding = await ltdAndLong(createEvent.address, createEvent.postalCode);
       createEvent.longitude = geocoding.lng;
       createEvent.latitude = geocoding.lat;
 
@@ -89,7 +82,7 @@ export class EventsService {
         description: createEvent.description,
         maxClothes: createEvent.maxClothes,
         Date: createEvent.Date,
-        addres: createEvent.addres,
+        address: createEvent.address,
         latitude: createEvent.latitude,
         longitude: createEvent.longitude,
         type: createEvent.type,

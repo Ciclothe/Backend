@@ -16,7 +16,7 @@ import { ltdAndLong } from 'src/utils/LtdAndLong';
 export class SearchService {
   constructor(private prisma: PrismaService) {}
 
-  async searchPublications(req: Request, search: string) {
+  async searchPublications(req: Request, search: string, address?: string, postalCode?: string, radius?: string) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -36,6 +36,29 @@ export class SearchService {
           search,
         },
       });
+    }
+
+    if (address && postalCode && radius) {
+      const geocoding = await ltdAndLong(address, postalCode);
+      const lng = geocoding.lng;
+      const lat = geocoding.lat;
+
+      const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
+   
+      const publications = await this.prisma.$queryRaw`
+        SELECT *, 
+               ST_Distance_Sphere(
+                 POINT(longitude, latitude), 
+                 POINT(${lng}, ${lat})
+               ) AS distance
+        FROM publications
+        WHERE 
+          ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
+          AND (title LIKE ${`%${search}%`} OR description LIKE ${`%${search}%`})
+        ORDER BY distance ASC;
+      `;
+      
+      return publications;
     }
 
     // Find publications that match with the search
@@ -170,14 +193,35 @@ export class SearchService {
     return postsOrdered;
   }
 
-  async searchEvents(req: Request, search: string, addres?: string, postalCode?: string, radius?: string) {
-
-    if(addres && postalCode && radius){
-      const geocoding = await ltdAndLong(addres, postalCode);
+  async searchEvents(
+    req: Request,
+    search: string,
+    address?: string,
+    postalCode?: string,
+    radius?: string,
+  ) {
+    if (address && postalCode && radius) {
+      const geocoding = await ltdAndLong(address, postalCode);
       const lng = geocoding.lng;
       const lat = geocoding.lat;
-    }
 
+      const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
+      console.log(distanceInMeters);
+      const events = await this.prisma.$queryRaw`
+        SELECT *, 
+               ST_Distance_Sphere(
+                 POINT(longitude, latitude), 
+                 POINT(${lng}, ${lat})
+               ) AS distance
+        FROM events
+        WHERE 
+          ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
+        ORDER BY distance ASC;
+      `;
+
+      return events;
+    }
+    
     return this.prisma.events.findMany({
       where: {
         name: {

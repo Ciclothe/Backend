@@ -33,7 +33,7 @@ export class CreateEventDto {
   @ApiProperty({description: 'Event location'})
   @IsString()
   @IsOptional()
-  addres?: string;
+  address?: string;
 
   @ApiProperty({description: 'postal code'})
   @IsString()
@@ -87,7 +87,7 @@ export class UpdateEventDto {
   @ApiProperty({description: 'Event location'})
   @IsString()
   @IsOptional()
-  addres?: string;
+  address?: string;
 
   @ApiProperty({description: 'postal code'})
   @IsString()

@@ -25,10 +25,11 @@ export class SearchController {
   searchPublication(
     @Req() req: Request,
     @Query('search') search: string,
-    @Query('addres') addres?: string,
+    @Query('address') addres?: string,
     @Query('postalCode') postalCode?: string,
+    @Query('radius') radius?: string,
   ) {
-    return this.searchService.searchPublications(req, search);
+    return this.searchService.searchPublications(req, search, addres, postalCode, radius);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -38,11 +39,11 @@ export class SearchController {
   searchEvents(
     @Req() req: Request,
     @Query('search') search: string,
-    @Query('addres') addres?: string,
+    @Query('address') address?: string,
     @Query('postalCode') postalCode?: string,
     @Query('radius') radius?: string,
   ) {
-    return this.searchService.searchEvents(req, search, addres, postalCode, radius);
+    return this.searchService.searchEvents(req, search, address, postalCode, radius);
   }
 
   @UseGuards(JwtAuthGuard)

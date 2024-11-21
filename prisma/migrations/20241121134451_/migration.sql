@@ -191,9 +191,9 @@ CREATE TABLE `Events` (
     `Date` DATETIME(3) NOT NULL,
     `type` VARCHAR(191) NOT NULL,
     `theme` VARCHAR(191) NULL,
-    `addres` VARCHAR(191) NULL,
-    `latitude` DOUBLE NOT NULL,
-    `longitude` DOUBLE NOT NULL,
+    `address` VARCHAR(191) NULL,
+    `latitude` DOUBLE NULL,
+    `longitude` DOUBLE NULL,
     `maximumCapacity` INTEGER NOT NULL,
     `creatorId` INTEGER NOT NULL,
 

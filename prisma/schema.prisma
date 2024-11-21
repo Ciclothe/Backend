@@ -1,6 +1,8 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
+
 
 datasource db {
   provider = "mysql"
@@ -96,7 +98,7 @@ model Messages {
   chatRoom        ChatRoom       @relation(fields: [chatRoomId], references: [id])
   notifications   Notifications? @relation(fields: [notificationsId], references: [id])
   notificationsId Int?
-}
+} 
 
 model Follow {
   id           Int   @id @default(autoincrement())
@@ -206,9 +208,9 @@ model Events {
   Date            DateTime
   type            String
   theme           String?
-  addres        String?
-  latitude        Float
-  longitude       Float
+  address        String?
+  latitude        Float?
+  longitude       Float?
   maximumCapacity Int
   creator         Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId       Int
