@@ -20,6 +20,16 @@ export class Publication {
   city: string;
 
   @IsNotEmpty()
+  @IsString()
+  address: string;
+
+  latitude?: number;
+
+  longitude?: number;
+  
+  postalCode: string;
+
+  @IsNotEmpty()
   @IsEnum(Condition)
   currentCondition: Condition;
 

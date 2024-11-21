@@ -8,6 +8,7 @@ import { Request } from 'express';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ltdAndLong } from 'src/utils/LtdAndLong';
 
 @Injectable()
 export class EventsService {
@@ -56,24 +57,38 @@ export class EventsService {
     return event;
   }
 
-  async createEvent(createEventDto: CreateEventDto, req: Request) {
-    //Verify if the event already exists
-    const existingEvent = await this.prisma.events.findUnique({
-      where: { name: createEventDto.name },
-    });
-    if (existingEvent) {
-      throw new Error(`Event with name ${createEventDto.name} already exists`);
+  async createEvent(createEvent: CreateEventDto, req: Request) {
+    
+    //if the events is presencial
+    if(createEvent.address){
+
+      const geocoding = await ltdAndLong(createEvent.address, createEvent.postalCode);
+      createEvent.longitude = geocoding.lng;
+      createEvent.latitude = geocoding.lat;
+
     }
 
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    createEventDto.creatorId = decodeToken.id;
+    createEvent.creatorId = decodeToken.id;
 
     //Create event
     return this.prisma.events.create({
-      data: createEventDto,
+      data: {
+        creatorId: createEvent.creatorId,
+        name: createEvent.name,
+        description: createEvent.description,
+        maxClothes: createEvent.maxClothes,
+        Date: createEvent.Date,
+        address: createEvent.address,
+        latitude: createEvent.latitude,
+        longitude: createEvent.longitude,
+        type: createEvent.type,
+        theme: createEvent.theme,
+        maximumCapacity: createEvent.maximumCapacity,
+      },
     });
   }
 

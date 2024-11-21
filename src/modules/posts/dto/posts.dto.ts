@@ -79,21 +79,21 @@ export class EditPublicationDto {
   @IsString()
   brand?: string;
 
+  
+  @ApiProperty({ description: 'Address of the item' })
+  @IsString()
+  address?: string;
+
+  postalCode?: string;
+
+  latitude?: number;
+
+  longitude?: number;
+
   @ApiProperty({ description: 'Reservation status of the publication', enum: ['Yes', 'No'], required: false })
   @IsOptional()
   @IsEnum(['Yes', 'No'])
   reserved?: 'Yes' | 'No';
-}
-
-
-class SizeDto {
-  @ApiProperty({ description: 'Height of the item' })
-  @IsString()
-  height: string;
-
-  @ApiProperty({ description: 'Width of the item' })
-  @IsString()
-  width: string;
 }
 
 class ColorDto {
@@ -110,6 +110,14 @@ class LocationDto {
   @ApiProperty({ description: 'Country where the item is located' })
   @IsString()
   country: string;
+
+  @ApiProperty({ description: 'Address of the item' })
+  @IsString()
+  address: string;
+
+  @ApiProperty({ description: 'Postal code of the item' })
+  @IsString()
+  postalCode: string;
 }
 
 class DescriptionDto {
@@ -135,8 +143,7 @@ class DescriptionDto {
 
   @ApiProperty({ description: 'Size details of the item' })
   @ValidateNested()
-  @Type(() => SizeDto)
-  size: SizeDto;
+  size: string;
 
   @ApiProperty({ description: 'Color details of the item' })
   @ValidateNested()
@@ -187,19 +194,13 @@ class MediaDto {
   base64: string;
 }
 
-class ConditionDto {
-  @ApiProperty({ description: 'Condition of the item' })
-  @IsString()
-  state: string;
-}
 
 export class PostDetailsDto {
   @ApiProperty({ description: 'Condition of the item' })
   @ValidateNested()
-  @Type(() => ConditionDto)
-  condition: ConditionDto;
+  condition: string;
 
-  @ApiProperty({ description: 'Categories of the item', type: [CategoresDto] })
+  @ApiProperty({ description: 'Categories of the item' })
   @IsArray()
   @ValidateNested({ each: true })
   categories: any;

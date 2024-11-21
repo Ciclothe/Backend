@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Publication } from './types/post';
+import { ltdAndLong } from 'src/utils/LtdAndLong';
 
 @Injectable()
 export class PostsService {
@@ -18,12 +19,20 @@ export class PostsService {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
+      const geocoding = await ltdAndLong(publication.address, publication.postalCode);
+
+      publication.longitude = geocoding.lng;
+      publication.latitude = geocoding.lat;
+
       const newPublication = await this.prisma.publications.create({
         data: {
           title: publication.title,
           description: publication.description,
           country: publication.country,
           city: publication.city,
+          address: publication.address,
+          latitude: publication.latitude,
+          longitude: publication.longitude,
           brand: publication.brand,
           usage_time: publication.usageTime,
           size: publication.size,
@@ -58,7 +67,6 @@ export class PostsService {
         });
       }
 
-      console.log('Post published successfully');
       return 'Post published successfully';
     } catch (e) {
       console.error('Error in createPost:', e);
@@ -96,6 +104,13 @@ export class PostsService {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
+      if(publication.address){
+        const geocoding = await ltdAndLong(publication.address, publication.postalCode);
+
+        publication.longitude = geocoding.lng;
+        publication.latitude = geocoding.lat;
+      }
+
       //Update post whit the new information provided
       await this.prisma.publications.updateMany({
         where: {
@@ -107,6 +122,9 @@ export class PostsService {
           description: publication.description,
           country: publication.country,
           city: publication.city,
+          address: publication.address,
+          latitude: publication.latitude,
+          longitude: publication.longitude,
           current_condition: publication.currentCondition,
           reserved: publication.reserved,
         },
