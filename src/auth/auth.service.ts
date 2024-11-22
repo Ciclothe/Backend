@@ -130,6 +130,31 @@ export class AuthService {
     }
   }
 
+  async googleLogin(user) {
+    //check if user exists in db
+    await this.prisma.users.findFirst({
+      where: {
+        email: user.email,
+      },
+    })
+
+    // //if user does not exist, create user
+    // await this.prisma.users.create({
+    //   data: {
+    //     email: user.email,
+    //     firstName: user.firstName,
+    //     secondName: user.secondName,
+    //     lastName: user.lastName,
+    //     acceptNewsLatters: user.acceptNewsLatters,
+    //     acceptTermsAndConditions: user.acceptTermsAndConditions,
+    //     city: user.city,
+    //     country: user.country,
+    //     dateOfBirth: user.dateOfBirth,
+    //   }
+    //   })
+    return 'Google login';
+  }
+
   logoutUser(res: Response) {
     res.clearCookie('token');
 

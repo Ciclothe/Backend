@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/auth.dto';
 import { Request, Response } from 'express';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { GoogleOauthGuard } from './guards/google-oauth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +26,11 @@ export class AuthController {
   ) {
     return this.authService.loginUser(user, res);
   }
+
+  @UseGuards(GoogleOauthGuard)
+  @Get('google')
+  @ApiOperation({ summary: 'Google OAuth2 login' })
+  googleLogin() {}
 
   @Get()
   @ApiOperation({ summary: 'Logout user' })
