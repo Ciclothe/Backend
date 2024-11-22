@@ -288,6 +288,8 @@ export class HomeService {
               userName: true,
               profilePhoto: true,
               totalLikes: true,
+              country: true,
+              city: true,
             },
           },
         },
@@ -311,11 +313,18 @@ export class HomeService {
       return mostLikedUsers;
     } else {
       const users: User[] = await this.prisma.users.findMany({
+        where: {
+          NOT: {
+            id: decodeToken.id,
+          },
+        },
         select: {
           id: true,
           userName: true,
           profilePhoto: true,
           totalLikes: true,
+          country: true,
+          city: true,
         },
       });
 
