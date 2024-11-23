@@ -35,6 +35,7 @@ export class HomeController {
   @Get('filter/:fl/:filter?')
   @ApiOperation({ summary: 'Get filtered posts' })
   filteredPost(
+    @Req() req: Request,
     @Param('fl') filterName: FilterName,
     @Param('filter') filter: Filter,
   ) {
@@ -43,7 +44,7 @@ export class HomeController {
       filter,
     };
 
-    return this.homeService.filteredPost(parameters);
+    return this.homeService.filteredPost(parameters, req);
   }
 
   @UseGuards(JwtAuthGuard)

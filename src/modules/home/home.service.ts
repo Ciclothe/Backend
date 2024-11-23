@@ -31,6 +31,9 @@ export class HomeService {
       },
       select: {
         publications: {
+          orderBy: {
+            publicatedAt: 'desc',
+          },
           include: {
             tags: true,
             categories: true,
@@ -57,10 +60,6 @@ export class HomeService {
     const allPublications = followedUsersPost.flatMap(
       (user) => user.publications,
     );
-    allPublications.sort(
-      (a, b) =>
-        new Date(b.publicatedAt).getTime() - new Date(a.publicatedAt).getTime(),
-    );
 
     return allPublications;
   }
@@ -73,6 +72,11 @@ export class HomeService {
     //Search the publications and save the id and the category
     const publications: PublicationsDto[] =
       await this.prisma.publications.findMany({
+        where: {
+          NOT: {
+            createdById: decodeToken.id,
+          },
+        },
         select: {
           id: true,
           categories: true,
@@ -110,6 +114,11 @@ export class HomeService {
       const postSelected = postClasification(categories, publications);
 
       const posts = await this.prisma.publications.findMany({
+        where:{
+          NOT:{
+            createdById: decodeToken.id
+          }
+        },
         include: {
           tags: true,
           categories: true,
@@ -145,6 +154,11 @@ export class HomeService {
       return postsOrdered;
     } else {
       const posts = await this.prisma.publications.findMany({
+        where:{
+          NOT:{
+            createdById: decodeToken.id
+          }
+        },
         include: {
           tags: true,
           categories: true,
@@ -188,6 +202,9 @@ export class HomeService {
             OR: [{ name: category }, { name: subcategory }],
           },
         },
+        NOT: {
+          createdById: decodeToken.id,
+        },
       },
       select: {
         id: true,
@@ -226,6 +243,11 @@ export class HomeService {
     const postSelected = postClasification(categories, publications);
 
     const posts = await this.prisma.publications.findMany({
+      where:{
+        NOT:{
+          createdById: decodeToken.id
+        }
+      },
       include: {
         tags: true,
         categories: true,
@@ -334,9 +356,17 @@ export class HomeService {
     }
   }
 
-  async filteredPost(parameters: Params) {
+  async filteredPost(parameters: Params, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
     if (parameters.filterName === 'date') {
       return await this.prisma.publications.findMany({
+        where: {
+          NOT: {
+            createdById: decodeToken.id,
+          },
+        },
         orderBy: {
           publicatedAt: 'desc',
         },
@@ -345,30 +375,45 @@ export class HomeService {
       return await this.prisma.publications.findMany({
         where: {
           current_condition: parameters.filter,
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
       });
     } else if (parameters.filterName == 'gender') {
       return await this.prisma.publications.findMany({
         where: {
           gender: parameters.filter,
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
       });
     } else if (parameters.filterName == 'color') {
       return await this.prisma.publications.findMany({
         where: {
           primary_color: parameters.filter,
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
       });
     } else if (parameters.filterName == 'size') {
       return await this.prisma.publications.findMany({
         where: {
           size: parameters.filter,
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
       });
     } else if (parameters.filterName == 'brand') {
       return await this.prisma.publications.findMany({
         where: {
           brand: parameters.filter,
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
       });
     }
