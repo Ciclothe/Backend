@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class AuthService {
@@ -45,6 +46,8 @@ export class AuthService {
         userName: user.userName,
         latitude: user.latitude,
         longitude: user.longitude,
+        country: user.country,
+        city: user.city,
         phoneNumber: user.phoneNumber,
         acceptTermsAndConditions: user.termsAndConditions,
         acceptNewsLatters: user.receivePromotions,

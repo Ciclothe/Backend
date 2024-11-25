@@ -9,8 +9,7 @@ import {
   type UserPublicationDto,
 } from './dto/home.dto';
 import { postClasification } from 'src/utils/postClasification';
-import { Brand, Color, Gender, Params, Size, User } from './types/home';
-import { mostLiked } from 'src/utils/mostLiked';
+import { Params,  User } from './types/home';
 
 @Injectable()
 export class HomeService {
@@ -328,9 +327,7 @@ export class HomeService {
         );
       }
 
-      const mostLikedUsers = mostLiked(filterFollowingUsers);
-
-      return mostLikedUsers;
+      return filterFollowingUsers;
     } else {
       const users: User[] = await this.prisma.users.findMany({
         where: {
@@ -343,12 +340,17 @@ export class HomeService {
           userName: true,
           profilePhoto: true,
           totalLikes: true,
+          country: true,
+          city: true,
         },
+        orderBy: {
+          totalLikes: 'desc',
+        },
+        take: 3,
       });
 
-      const mostLikedUsers = mostLiked(users);
 
-      return mostLikedUsers;
+      return users;
     }
   }
 

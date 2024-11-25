@@ -16,6 +16,8 @@ model Users {
   acceptNewsLatters        Boolean
   longitude                Float?
   latitude                 Float?
+  country                  String?
+  city                     String?
   qualification            Float             @default(0)
   email                    String            @unique
   password                 String
