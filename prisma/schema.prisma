@@ -3,7 +3,6 @@ generator client {
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
@@ -12,22 +11,18 @@ datasource db {
 model Users {
   id                       Int               @id @default(autoincrement())
   userName                 String            @unique
-  firstName                String
-  secondName               String?
-  lastName                 String
-  gender                   String
   dateOfBirth              DateTime
   acceptTermsAndConditions Boolean
   acceptNewsLatters        Boolean
+  longitude                Float
+  latitude                 Float
   qualification            Float             @default(0)
   email                    String            @unique
   password                 String
   accountCreatedAt         DateTime          @default(now())
-  profilePhoto             String?
+  profilePhoto             String?           @db.LongText
   totalLikes               Int               @default(0)
-  phoneNumber              String
-  country                  String
-  city                     String
+  phoneNumber              String?           @unique
   publications             Publications[] // One-to-many relation
   likes                    Likes[] // One-to-many relation
   searchHistorial          SearchHistorial[]
@@ -98,7 +93,7 @@ model Messages {
   chatRoom        ChatRoom       @relation(fields: [chatRoomId], references: [id])
   notifications   Notifications? @relation(fields: [notificationsId], references: [id])
   notificationsId Int?
-} 
+}
 
 model Follow {
   id           Int   @id @default(autoincrement())
@@ -123,19 +118,16 @@ model Publications {
   createdById       Int
   title             String
   description       String
-  country           String
-  city              String
-  address           String
   longitude         Float
   latitude          Float
   current_condition String
   gender            String
   size              String?
-  usage_time        String?
   primary_color     String?
   brand             String?
   reserved          String        @default("No")
   publicatedAt      DateTime      @default(now())
+  type              String
   categories        Categories[] //Many-to-many relation
   likes             Likes[] //One-to-many relation
   tags              Tags[] //Many-to-many relation
@@ -150,6 +142,7 @@ model Publications {
 model Image {
   id            Int          @id @default(autoincrement())
   base64        String       @db.LongText
+  orientation   String
   publication   Publications @relation(fields: [publicationId], references: [id])
   publicationId Int
 }
@@ -204,14 +197,14 @@ model Events {
   id              Int            @id @unique @default(autoincrement())
   name            String         @unique
   description     String
-  maxClothes      Int
+  maxClothes      Int?
   Date            DateTime
   type            String
   theme           String?
-  address        String?
   latitude        Float?
   longitude       Float?
   maximumCapacity Int
+  verified     Boolean        @default(false)
   creator         Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId       Int
   members         Users[]        @relation("members")
@@ -222,6 +215,9 @@ model Communities {
   id           Int            @id @unique @default(autoincrement())
   name         String         @unique
   description  String
+  category     String
+  photo        String         @db.LongText
+  verified     Boolean        @default(false)
   creator      Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId    Int
   members      Users[]        @relation("members")
