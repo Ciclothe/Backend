@@ -10,7 +10,7 @@ import {
   PublicationsDto,
   UserPublicationDto,
 } from '../home/dto/home.dto';
-import { ltdAndLong } from 'src/utils/LtdAndLong';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class SearchService {
@@ -51,6 +51,7 @@ export class SearchService {
         WHERE 
           ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
           AND (title LIKE ${`%${search}%`} OR description LIKE ${`%${search}%`})
+          AND NOT (createdById = ${decodeToken.id})
         ORDER BY distance ASC;
       `;
 
@@ -64,6 +65,9 @@ export class SearchService {
           contains: search,
           // mode: 'insensitive',
         },
+        createdById: {
+          not: decodeToken.id,
+        }
       },
       select: {
         id: true,
@@ -161,6 +165,9 @@ export class SearchService {
       const publicationsCategories = await this.prisma.publications.findMany({
         where: {
           id: userReactions[i].publicationId,
+          createdById: {  
+            not: decodeToken.id
+          }
         },
         select: {
           id: true,

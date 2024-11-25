@@ -6,6 +6,10 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+  
+  @ApiProperty({description: 'Event photo'})
+  @IsString()
+  photo?: string;
 
   @ApiProperty({description: 'Event description'})
   @IsString()
@@ -97,6 +101,15 @@ export class UpdateEventDto {
   latitude?: number;
 
   longitude?: number;
+
+  @ApiProperty({description: 'Event photo'})
+  @IsString()
+  photo?: string;
+
+  @ApiProperty({description: 'Event verified'})
+  @IsOptional()
+  verified?: boolean;
+
   
   @ApiProperty({description: 'Event maximum capacity'})
   @IsInt()

@@ -2,25 +2,22 @@
 CREATE TABLE `Users` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userName` VARCHAR(191) NOT NULL,
-    `firstName` VARCHAR(191) NOT NULL,
-    `secondName` VARCHAR(191) NULL,
-    `lastName` VARCHAR(191) NOT NULL,
-    `gender` VARCHAR(191) NOT NULL,
     `dateOfBirth` DATETIME(3) NOT NULL,
     `acceptTermsAndConditions` BOOLEAN NOT NULL,
     `acceptNewsLatters` BOOLEAN NOT NULL,
+    `longitude` DOUBLE NULL,
+    `latitude` DOUBLE NULL,
     `qualification` DOUBLE NOT NULL DEFAULT 0,
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `accountCreatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `profilePhoto` VARCHAR(191) NULL,
+    `profilePhoto` LONGTEXT NULL,
     `totalLikes` INTEGER NOT NULL DEFAULT 0,
-    `phoneNumber` VARCHAR(191) NOT NULL,
-    `country` VARCHAR(191) NOT NULL,
-    `city` VARCHAR(191) NOT NULL,
+    `phoneNumber` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Users_userName_key`(`userName`),
     UNIQUE INDEX `Users_email_key`(`email`),
+    UNIQUE INDEX `Users_phoneNumber_key`(`phoneNumber`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -97,19 +94,16 @@ CREATE TABLE `Publications` (
     `createdById` INTEGER NOT NULL,
     `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
-    `country` VARCHAR(191) NOT NULL,
-    `city` VARCHAR(191) NOT NULL,
-    `address` VARCHAR(191) NOT NULL,
     `longitude` DOUBLE NOT NULL,
     `latitude` DOUBLE NOT NULL,
     `current_condition` VARCHAR(191) NOT NULL,
     `gender` VARCHAR(191) NOT NULL,
     `size` VARCHAR(191) NULL,
-    `usage_time` VARCHAR(191) NULL,
     `primary_color` VARCHAR(191) NULL,
     `brand` VARCHAR(191) NULL,
     `reserved` VARCHAR(191) NOT NULL DEFAULT 'No',
     `publicatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `type` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -118,6 +112,7 @@ CREATE TABLE `Publications` (
 CREATE TABLE `Image` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `base64` LONGTEXT NOT NULL,
+    `orientation` VARCHAR(191) NOT NULL,
     `publicationId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
@@ -187,14 +182,15 @@ CREATE TABLE `Events` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
-    `maxClothes` INTEGER NOT NULL,
+    `maxClothes` INTEGER NULL,
     `Date` DATETIME(3) NOT NULL,
     `type` VARCHAR(191) NOT NULL,
     `theme` VARCHAR(191) NULL,
-    `address` VARCHAR(191) NULL,
     `latitude` DOUBLE NULL,
     `longitude` DOUBLE NULL,
     `maximumCapacity` INTEGER NOT NULL,
+    `photo` LONGTEXT NULL,
+    `verified` BOOLEAN NOT NULL DEFAULT false,
     `creatorId` INTEGER NOT NULL,
 
     UNIQUE INDEX `Events_id_key`(`id`),
@@ -207,6 +203,9 @@ CREATE TABLE `Communities` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
+    `category` VARCHAR(191) NOT NULL,
+    `photo` LONGTEXT NULL,
+    `verified` BOOLEAN NOT NULL DEFAULT false,
     `creatorId` INTEGER NOT NULL,
 
     UNIQUE INDEX `Communities_id_key`(`id`),

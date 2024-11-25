@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Publication } from './types/post';
-import { ltdAndLong } from 'src/utils/LtdAndLong';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class PostsService {
@@ -28,18 +28,15 @@ export class PostsService {
         data: {
           title: publication.title,
           description: publication.description,
-          country: publication.country,
-          city: publication.city,
-          address: publication.address,
           latitude: publication.latitude,
           longitude: publication.longitude,
           brand: publication.brand,
-          usage_time: publication.usageTime,
           size: publication.size,
           primary_color: publication.primary_color,
           gender: publication.gender,
           current_condition: publication.currentCondition,
           createdById: decodeToken.id,
+          type: publication.type,
           categories: {
             connectOrCreate: publication.categories.map((category) => ({
               where: { name: category },
@@ -63,6 +60,7 @@ export class PostsService {
           data: {
             base64: img,
             publicationId: newPublication.id,
+            orientation: publication.orientation,
           },
         });
       }
@@ -120,9 +118,6 @@ export class PostsService {
         data: {
           title: publication.title,
           description: publication.description,
-          country: publication.country,
-          city: publication.city,
-          address: publication.address,
           latitude: publication.latitude,
           longitude: publication.longitude,
           current_condition: publication.currentCondition,

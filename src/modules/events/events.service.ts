@@ -8,7 +8,7 @@ import { Request } from 'express';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ltdAndLong } from 'src/utils/LtdAndLong';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class EventsService {
@@ -82,17 +82,17 @@ export class EventsService {
         description: createEvent.description,
         maxClothes: createEvent.maxClothes,
         Date: createEvent.Date,
-        address: createEvent.address,
         latitude: createEvent.latitude,
         longitude: createEvent.longitude,
         type: createEvent.type,
         theme: createEvent.theme,
         maximumCapacity: createEvent.maximumCapacity,
+        photo: createEvent.photo,
       },
     });
   }
 
-  async updateEvent(id: number, updateEventDto: UpdateEventDto) {
+  async updateEvent(id: number, updateEvent: UpdateEventDto) {
     id = Number(id);
 
     //Check if event exists
@@ -106,7 +106,7 @@ export class EventsService {
     //Update event
     return this.prisma.events.update({
       where: { id },
-      data: updateEventDto,
+      data: updateEvent,
     });
   }
 

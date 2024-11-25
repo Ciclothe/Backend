@@ -14,24 +14,11 @@ export class UserRegisterDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: 'First name of the user' })
-  @IsNotEmpty()
-  @IsString()
-  firstName: string;
+  @ApiProperty({ description: 'Latitude of the user' })
+  latitude: number;
 
-  @ApiProperty({ description: 'Last name of the user' })
-  @IsNotEmpty()
-  @IsString()
-  lastName: string;
-
-  @ApiProperty({ description: 'Second name of the user', required: false })
-  @IsString()
-  secondName: string;
-
-  @ApiProperty({ description: 'Gender of the user' })
-  @IsNotEmpty()
-  @IsString()
-  gender: string;
+  @ApiProperty({ description: 'Longitude of the user' })
+  longitude: number;
 
   @ApiProperty({ description: 'Password of the user' })
   @IsNotEmpty()

@@ -57,6 +57,8 @@ export class CommunitiesService {
         name: community.name,
         description: community.description,
         creatorId: decodeToken.id,
+        category: community.category,
+        photo: community.photo,
       },
     });
   }
@@ -78,6 +80,8 @@ export class CommunitiesService {
       data: {
         name: community.name,
         description: community.description,
+        category: community.category,
+        photo: community.photo,
       },
     });
   }

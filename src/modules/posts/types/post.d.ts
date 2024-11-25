@@ -1,3 +1,5 @@
+import { isString } from "class-validator";
+
 export class Publication {
   @IsNotEmpty()
   @IsString()
@@ -9,15 +11,8 @@ export class Publication {
 
   @IsNotEmpty()
   @IsString()
-  country: string;
-
-  @IsNotEmpty()
-  @IsString()
   gender: string;
 
-  @IsNotEmpty()
-  @IsString()
-  city: string;
 
   @IsNotEmpty()
   @IsString()
@@ -27,7 +22,11 @@ export class Publication {
 
   longitude?: number;
   
+  @IsNotEmpty()
   postalCode: string;
+
+  @IsNotEmpty()
+  type: string;
 
   @IsNotEmpty()
   @IsEnum(Condition)
@@ -60,4 +59,7 @@ export class Publication {
   tags?: string[];
 
   media: string[];
+
+  @isString()
+  orientation: string;
 }
