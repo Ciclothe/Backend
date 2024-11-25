@@ -38,8 +38,6 @@ export class PostsController {
     const publication: Publication = {
       title : postDetails.description.title,
       categories,
-      city: postDetails.description.location.city,
-      country: postDetails.description.location.country,
       address: postDetails.description.location.address,
       postalCode: postDetails.description.location.postalCode,
       currentCondition: postDetails.condition,
@@ -50,7 +48,9 @@ export class PostsController {
       size: postDetails.description.size,
       tags: postDetails.description.tags,
       usageTime: postDetails.description.usageTime,
-      media: postDetails.media.map((img) => img.base64)
+      media: postDetails.media.map((img) => img.base64),
+      orientation: postDetails.orientation,
+      type: postDetails.type,
     };
 
     return this.postService.createPost(publication, req);

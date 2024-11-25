@@ -310,8 +310,6 @@ export class HomeService {
               userName: true,
               profilePhoto: true,
               totalLikes: true,
-              country: true,
-              city: true,
             },
           },
         },
@@ -345,8 +343,6 @@ export class HomeService {
           userName: true,
           profilePhoto: true,
           totalLikes: true,
-          country: true,
-          city: true,
         },
       });
 

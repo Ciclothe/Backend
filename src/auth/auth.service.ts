@@ -41,14 +41,10 @@ export class AuthService {
     const newUser = await this.prisma.users.create({
       data: {
         email: user.email,
-        firstName: user.firstName,
-        secondName: user.secondName,
-        lastName: user.lastName,
-        gender: user.gender,
         password: user.password,
         userName: user.userName,
-        country: user.country,
-        city: user.city,
+        latitude: user.latitude,
+        longitude: user.longitude,
         phoneNumber: user.phoneNumber,
         acceptTermsAndConditions: user.termsAndConditions,
         acceptNewsLatters: user.receivePromotions,

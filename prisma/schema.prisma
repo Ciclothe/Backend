@@ -14,8 +14,8 @@ model Users {
   dateOfBirth              DateTime
   acceptTermsAndConditions Boolean
   acceptNewsLatters        Boolean
-  longitude                Float
-  latitude                 Float
+  longitude                Float?
+  latitude                 Float?
   qualification            Float             @default(0)
   email                    String            @unique
   password                 String
@@ -204,6 +204,7 @@ model Events {
   latitude        Float?
   longitude       Float?
   maximumCapacity Int
+  photo           String?         @db.LongText
   verified     Boolean        @default(false)
   creator         Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId       Int
@@ -216,7 +217,7 @@ model Communities {
   name         String         @unique
   description  String
   category     String
-  photo        String         @db.LongText
+  photo        String?         @db.LongText
   verified     Boolean        @default(false)
   creator      Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId    Int

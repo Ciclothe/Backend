@@ -6,6 +6,7 @@ import {
   IsInt,
   IsNotEmpty,
   ValidateNested,
+  isString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -192,6 +193,7 @@ class MediaDto {
   @ApiProperty({ description: 'Base64 encoded content of the media file' })
   @IsString()
   base64: string;
+
 }
 
 
@@ -215,4 +217,10 @@ export class PostDetailsDto {
   @ValidateNested({ each: true })
   @Type(() => MediaDto)
   media: MediaDto[];
+
+  @ApiProperty({ description: 'Orientation of the media files'})  
+  orientation: string;
+
+  @ApiProperty({ description: 'Publication type: text or image' })
+  type: string;
 }

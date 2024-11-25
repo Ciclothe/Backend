@@ -9,4 +9,12 @@ export class CommunitiesDto {
     @ApiProperty({ description: 'Description of the community' })
     @IsString()
     description: string;
+
+    @ApiProperty({ description: 'Category of the community' })
+    @IsString()
+    category: string;
+
+    @ApiProperty({ description: 'Photo of the community' })
+    @IsString()
+    photo: string;
   }
