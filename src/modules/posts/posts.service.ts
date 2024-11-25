@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Publication } from './types/post';
-import { ltdAndLong } from 'src/utils/geocoding/LtdAndLong';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class PostsService {

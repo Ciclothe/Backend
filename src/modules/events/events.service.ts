@@ -8,7 +8,7 @@ import { Request } from 'express';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ltdAndLong } from 'src/utils/geocoding/LtdAndLong';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class EventsService {

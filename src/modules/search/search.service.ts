@@ -10,7 +10,7 @@ import {
   PublicationsDto,
   UserPublicationDto,
 } from '../home/dto/home.dto';
-import { ltdAndLong } from 'src/utils/geocoding/LtdAndLong';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class SearchService {
