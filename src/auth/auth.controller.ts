@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserRegisterDto } from './dto/auth.dto';
 import { Request, Response } from 'express';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { GoogleOauthGuard } from './guards/google-oauth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -32,6 +33,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth2 login' })
   googleLogin() {}
 
+  @Get('google/callback')
+  @UseGuards(GoogleOauthGuard)
+  async googleAuthCallback(@Req() req, @Res() res: Response) {
+    return await this.authService.googleLogin(req, res);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Logout user' })
   logoutUser(@Res({ passthrough: true }) res: Response) {
@@ -59,6 +66,7 @@ export class AuthController {
     return this.authService.resetPasswordVerification(email, token);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('newPassword')
   @ApiOperation({ summary: 'Change password' })
   @ApiBody({
@@ -75,6 +83,7 @@ export class AuthController {
     return this.authService.changePassword(password, confirmPassword, token);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete()
   @ApiOperation({ summary: 'Delete user account' })
   deleteUser(@Req() req: Request, @Res() res: Response) {

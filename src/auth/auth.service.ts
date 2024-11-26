@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { TokenDto, UserRegisterDto } from './dto/auth.dto';
 import { hash, compare } from 'bcryptjs';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,7 +6,8 @@ import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +39,7 @@ export class AuthService {
 
     //! DEVELOPMENT ONLY
     const selectedDate = new Date(user.dob);
-    
+
     const newUser = await this.prisma.users.create({
       data: {
         email: user.email,
@@ -129,29 +130,37 @@ export class AuthService {
     }
   }
 
-  async googleLogin(user) {
-    //check if user exists in db
-    await this.prisma.users.findFirst({
-      where: {
-        email: user.email,
-      },
-    })
+  async googleLogin(req, res: Response) {
+    const findUser = await this.prisma.users.findUnique({
+      where: { email: req.user.email },
+    });
 
-    // //if user does not exist, create user
-    // await this.prisma.users.create({
-    //   data: {
-    //     email: user.email,
-    //     firstName: user.firstName,
-    //     secondName: user.secondName,
-    //     lastName: user.lastName,
-    //     acceptNewsLatters: user.acceptNewsLatters,
-    //     acceptTermsAndConditions: user.acceptTermsAndConditions,
-    //     city: user.city,
-    //     country: user.country,
-    //     dateOfBirth: user.dateOfBirth,
-    //   }
-    //   })
-    return 'Google login';
+    if (!findUser) {
+      // Generate a random string as a placeholder password
+      const placeholderPassword = crypto.randomBytes(16).toString('hex');
+      const hashedPassword = await bcrypt.hash(placeholderPassword, 10);
+
+      await this.prisma.users.create({
+        data: {
+          email: req.user.email,
+          userName: req.user.name,
+          acceptNewsLatters: true,
+          acceptTermsAndConditions: true,
+          dateOfBirth: req.user.birthday,
+          password: hashedPassword, 
+        },
+      });
+    }
+
+    // Generate JWT token
+    const token = this.jwtService.sign(req.user);
+
+    // Generate JWT token
+    res.cookie('token', token, {
+      sameSite: 'lax',
+      httpOnly: true,
+    });
+    return res.status(HttpStatus.OK);
   }
 
   logoutUser(res: Response) {
