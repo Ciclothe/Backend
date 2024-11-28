@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -10,22 +11,20 @@ datasource db {
 model Users {
   id                       Int               @id @default(autoincrement())
   userName                 String            @unique
-  firstName                String
-  secondName               String?
-  lastName                 String
-  gender                   String
   dateOfBirth              DateTime
   acceptTermsAndConditions Boolean
   acceptNewsLatters        Boolean
+  longitude                Float?
+  latitude                 Float?
+  country                  String?
+  city                     String?
   qualification            Float             @default(0)
   email                    String            @unique
   password                 String
   accountCreatedAt         DateTime          @default(now())
-  profilePhoto             String?
+  profilePhoto             String?           @db.LongText
   totalLikes               Int               @default(0)
-  phoneNumber              String
-  country                  String
-  city                     String
+  phoneNumber              String?           @unique
   publications             Publications[] // One-to-many relation
   likes                    Likes[] // One-to-many relation
   searchHistorial          SearchHistorial[]
@@ -40,10 +39,11 @@ model Users {
   views                    View[]
   rating                   Rating[]          @relation("qualified")
   ratingsGiven             Rating[]          @relation("ratedBy")
-  communityBuilder         Communities[]     @relation("creator") 
-  communities              Communities[]     @relation("members") 
+  eventBuilder             Events[]          @relation("creator")
+  events                   Events[]          @relation("members")
+  communitiesBuilder       Communities[]     @relation("creator")
+  communities              Communities[]     @relation("members")
 }
-
 
 model Swap {
   id            Int          @id @default(autoincrement())
@@ -115,33 +115,36 @@ model Rating {
 }
 
 model Publications {
-  id                Int          @id @default(autoincrement())
-  createdBy         Users        @relation(fields: [createdById], references: [id])
+  id                Int           @id @default(autoincrement())
+  createdBy         Users         @relation(fields: [createdById], references: [id])
   createdById       Int
   title             String
   description       String
-  country           String
-  city              String
+  longitude         Float
+  latitude          Float
   current_condition String
   gender            String
   size              String?
-  usage_time        String?
   primary_color     String?
   brand             String?
-  reserved          String       @default("No")
-  publicatedAt      DateTime     @default(now())
+  reserved          String        @default("No")
+  publicatedAt      DateTime      @default(now())
+  type              String
   categories        Categories[] //Many-to-many relation
   likes             Likes[] //One-to-many relation
   tags              Tags[] //Many-to-many relation
   image             Image[] // One to many relation
-  swap              Swap[]       @relation("Desired")
-  swapOffered       Swap[]       @relation("Offered")
+  swap              Swap[]        @relation("Desired")
+  swapOffered       Swap[]        @relation("Offered")
   views             View[]
+  communities       Communities[]
+  events            Events[]
 }
 
 model Image {
   id            Int          @id @default(autoincrement())
   base64        String       @db.LongText
+  orientation   String
   publication   Publications @relation(fields: [publicationId], references: [id])
   publicationId Int
 }
@@ -192,20 +195,37 @@ model SearchHistorial {
   searchedBy   Users    @relation(fields: [searchedById], references: [id])
 }
 
-model Communities {
-  id              Int      @id @unique @default(autoincrement())
-  name            String
-  maxClothes      Int
+model Events {
+  id              Int            @id @unique @default(autoincrement())
+  name            String         @unique
+  description     String
+  maxClothes      Int?
   Date            DateTime
   type            String
   theme           String?
-  location        String?
+  latitude        Float?
+  longitude       Float?
   maximumCapacity Int
-  creator         Users    @relation("creator", fields: [creatorId], references: [id]) 
+  photo           String?         @db.LongText
+  verified     Boolean        @default(false)
+  creator         Users          @relation("creator", fields: [creatorId], references: [id])
   creatorId       Int
-  members         Users[]  @relation("members")
+  members         Users[]        @relation("members")
+  publications    Publications[]
 }
 
+model Communities {
+  id           Int            @id @unique @default(autoincrement())
+  name         String         @unique
+  description  String
+  category     String
+  photo        String?         @db.LongText
+  verified     Boolean        @default(false)
+  creator      Users          @relation("creator", fields: [creatorId], references: [id])
+  creatorId    Int
+  members      Users[]        @relation("members")
+  publications Publications[]
+}
 
 model FrontGenre {
   id               Int                @id @default(autoincrement())
@@ -236,5 +256,3 @@ model FrontCategories {
   FrontProductType FrontProductType @relation(fields: [typeId], references: [id])
   icon             String
 }
-
-

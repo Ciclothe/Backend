@@ -11,20 +11,26 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UserPublicationDto {
+  @ApiProperty({ description: 'ID of the user publication' })
   @IsInt()
   id: number;
 
+  @ApiProperty({ description: 'User ID associated with the publication' })
   @IsInt()
   userId: number;
 
+  @ApiProperty({ description: 'Publication ID associated with the user' })
   @IsInt()
   publicationId: number;
 
+  @ApiProperty({ description: 'Reaction time of the user' })
   @IsDate()
   reactionTime: Date;
 }
+
 
 export class DecodeDto {
   @IsInt()
@@ -51,11 +57,13 @@ export class CategoriesDto {
 }
 
 export class ParamsCategoryDto {
+  @ApiProperty({ description: 'Category name' })
   @IsNotEmpty()
   @IsString()
   category: string;
 
-  @IsOptional() 
+  @ApiProperty({ description: 'Subcategory name', required: false })
+  @IsOptional()
   @IsString()
   subcategory: string;
 }

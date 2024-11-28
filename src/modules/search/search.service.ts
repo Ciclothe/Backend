@@ -10,52 +10,64 @@ import {
   PublicationsDto,
   UserPublicationDto,
 } from '../home/dto/home.dto';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class SearchService {
   constructor(private prisma: PrismaService) {}
 
-  async searchPublications(req: Request, search: string) {
+  async searchPublications(
+    req: Request,
+    search: string,
+    address?: string,
+    postalCode?: string,
+    radius?: string,
+  ) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    // Save the search in the history if it doesn't exist
-    const existingSearch = await this.prisma.searchHistorial.findFirst({
-      where: {
+    await this.prisma.searchHistorial.create({
+      data: {
         searchedById: decodeToken.id,
         search,
       },
     });
 
-    if (!existingSearch) {
-      await this.prisma.searchHistorial.create({
-        data: {
-          searchedById: decodeToken.id,
-          search,
-        },
-      });
+    if (address && postalCode && radius) {
+      const geocoding = await ltdAndLong(address, postalCode);
+      const lng = geocoding.lng;
+      const lat = geocoding.lat;
+
+      const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
+
+      const publications = await this.prisma.$queryRaw`
+        SELECT *, 
+               ST_Distance_Sphere(
+                 POINT(longitude, latitude), 
+                 POINT(${lng}, ${lat})
+               ) AS distance
+        FROM publications
+        WHERE 
+          ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
+          AND (title LIKE ${`%${search}%`} OR description LIKE ${`%${search}%`})
+          AND NOT (createdById = ${decodeToken.id})
+        ORDER BY distance ASC;
+      `;
+
+      return publications;
     }
 
-    //         const searchPublications = await this.prisma.$queryRaw`
-    //     SELECT publications.id, categories.name AS category
-    //     FROM publications
-    //     JOIN _categoriestopublications ON publications.id = _categoriestopublications.A
-    //     JOIN categories ON _categoriestopublications.B = categories.id
-    //     WHERE MATCH(publications.title) AGAINST(${search} IN NATURAL LANGUAGE MODE)
-    // `
-
     // Find publications that match with the search
-    const searchPublicationsId: SearchIdDto[] = await this.prisma.$queryRaw`
-            SELECT id FROM publications
-            WHERE MATCH(title) AGAINST(${search} IN NATURAL LANGUAGE MODE)`;
-
-    // Find publications based on the ids  of searchPublicationsId
-    const searchPublications = await this.prisma.publications.findMany({
+    const searchPublications = this.prisma.publications.findMany({
       where: {
-        id: {
-          in: searchPublicationsId.map((publicationId) => publicationId.id),
+        title: {
+          contains: search,
+          // mode: 'insensitive',
         },
+        createdById: {
+          not: decodeToken.id,
+        }
       },
       select: {
         id: true,
@@ -105,6 +117,10 @@ export class SearchService {
       },
     });
 
+    if (!categories[0] && !tags[0] && !searchPublications[0]) {
+      return 'No results found';
+    }
+
     //Save all the publications in an array
     const allPublications = [].concat(
       searchPublications,
@@ -149,6 +165,9 @@ export class SearchService {
       const publicationsCategories = await this.prisma.publications.findMany({
         where: {
           id: userReactions[i].publicationId,
+          createdById: {  
+            not: decodeToken.id
+          }
         },
         select: {
           id: true,
@@ -175,6 +194,115 @@ export class SearchService {
     });
 
     return postsOrdered;
+  }
+
+  async searchEvents(
+    req: Request,
+    search: string,
+    address?: string,
+    postalCode?: string,
+    radius?: string,
+  ) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.searchHistorial.create({
+      data: {
+        searchedById: decodeToken.id,
+        search,
+      },
+    });
+
+    if (address && postalCode && radius) {
+      const geocoding = await ltdAndLong(address, postalCode);
+      const lng = geocoding.lng;
+      const lat = geocoding.lat;
+
+      const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
+      console.log(distanceInMeters);
+      const events = await this.prisma.$queryRaw`
+        SELECT *, 
+               ST_Distance_Sphere(
+                 POINT(longitude, latitude), 
+                 POINT(${lng}, ${lat})
+               ) AS distance
+        FROM events
+        WHERE 
+          ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
+        ORDER BY distance ASC;
+      `;
+
+      return events;
+    }
+
+    return this.prisma.events.findMany({
+      where: {
+        name: {
+          contains: search,
+          // mode: 'insensitive',
+        },
+      },
+    });
+  }
+
+  async searchCommunities(req: Request, search: string) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.searchHistorial.create({
+      data: {
+        searchedById: decodeToken.id,
+        search,
+      },
+    });
+
+    return this.prisma.communities.findMany({
+      where: {
+        name: {
+          contains: search,
+          // mode: 'insensitive',
+        },
+      },
+    });
+  }
+
+  async searchUsers(req: Request, search: string) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.searchHistorial.create({
+      data: {
+        searchedById: decodeToken.id,
+        search,
+      },
+    });
+
+    return this.prisma.users.findMany({
+      where: {
+        userName: {
+          contains: search,
+          // mode: 'insensitive',
+        },
+      },
+    });
+  }
+
+  async getSearchHistory(req: Request) {
+    // Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    // Search the history of the user withouth duplicates
+    return await this.prisma.$queryRaw`
+      SELECT search, MAX(searchedAt) AS latestSearchedAt
+      FROM searchhistorial
+      WHERE searchedById = ${decodeToken.id}
+      GROUP BY search
+      ORDER BY latestSearchedAt DESC;
+    `;
   }
 
   async deleteSearch(search: string, req: Request) {

@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class AuthService {
@@ -41,12 +42,10 @@ export class AuthService {
     const newUser = await this.prisma.users.create({
       data: {
         email: user.email,
-        firstName: user.firstName,
-        secondName: user.secondName,
-        lastName: user.lastName,
-        gender: user.gender,
         password: user.password,
         userName: user.userName,
+        latitude: user.latitude,
+        longitude: user.longitude,
         country: user.country,
         city: user.city,
         phoneNumber: user.phoneNumber,

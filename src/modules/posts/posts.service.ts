@@ -1,35 +1,42 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PublicationDto, EditPublicationDto } from './dto/posts.dto';
+import {  EditPublicationDto } from './dto/posts.dto';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Publication } from './types/post';
+import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
 
-  async createPost(publication: PublicationDto, req: Request) {
+  async createPost(publication: Publication, req: Request) {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
+
+      const geocoding = await ltdAndLong(publication.address, publication.postalCode);
+
+      publication.longitude = geocoding.lng;
+      publication.latitude = geocoding.lat;
 
       const newPublication = await this.prisma.publications.create({
         data: {
           title: publication.title,
           description: publication.description,
-          country: publication.country,
-          city: publication.city,
+          latitude: publication.latitude,
+          longitude: publication.longitude,
           brand: publication.brand,
-          usage_time: publication.usageTime,
           size: publication.size,
           primary_color: publication.primary_color,
           gender: publication.gender,
           current_condition: publication.currentCondition,
           createdById: decodeToken.id,
+          type: publication.type,
           categories: {
             connectOrCreate: publication.categories.map((category) => ({
               where: { name: category },
@@ -53,11 +60,11 @@ export class PostsService {
           data: {
             base64: img,
             publicationId: newPublication.id,
+            orientation: publication.orientation,
           },
         });
       }
 
-      console.log('Post published successfully');
       return 'Post published successfully';
     } catch (e) {
       console.error('Error in createPost:', e);
@@ -95,6 +102,13 @@ export class PostsService {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
+      if(publication.address){
+        const geocoding = await ltdAndLong(publication.address, publication.postalCode);
+
+        publication.longitude = geocoding.lng;
+        publication.latitude = geocoding.lat;
+      }
+
       //Update post whit the new information provided
       await this.prisma.publications.updateMany({
         where: {
@@ -104,8 +118,8 @@ export class PostsService {
         data: {
           title: publication.title,
           description: publication.description,
-          country: publication.country,
-          city: publication.city,
+          latitude: publication.latitude,
+          longitude: publication.longitude,
           current_condition: publication.currentCondition,
           reserved: publication.reserved,
         },

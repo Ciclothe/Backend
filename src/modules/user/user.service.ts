@@ -28,11 +28,6 @@ export class UserService {
         email: true,
         userName: true,
         profilePhoto: true,
-        gender: true,
-        firstName: true,
-        lastName: true,
-        city: true,
-        country: true,
       },
     });
 
@@ -56,8 +51,6 @@ export class UserService {
         email: true,
         accountCreatedAt: true,
         profilePhoto: true,
-        firstName: true,
-        lastName: true,
       },
     });
 
@@ -82,8 +75,6 @@ export class UserService {
       data: {
         userName: infoToUpdate.name,
         profilePhoto: profilePhoto.originalname,
-        firstName: infoToUpdate.firstName,
-        lastName: infoToUpdate.lastName,
       },
     });
 

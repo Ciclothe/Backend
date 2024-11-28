@@ -3,6 +3,8 @@ export interface User {
   userName: string;
   profilePhoto: String;
   totalLikes: number;
+  latitude?: number;
+  longitude?: number;
 }
 export type Color = "red" | "antiquewhite" | "blue"
 export type Size = "XXS" | "XS" | "S" | "M" | "L" | "XL" | "XLL"
