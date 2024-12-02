@@ -279,4 +279,29 @@ export class PostsService {
       },
     });
   }
+
+  async unsavePublication(publicationId: number, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    const savedPublication = await this.prisma.savedPublications.findFirst({
+      where: {
+        publicationId,
+        userId: decodeToken.id,
+      },
+      select:{
+        id: true
+      }
+    });
+
+    if(!savedPublication){ 
+      throw new HttpException('The publication is not saved', 200);
+    }
+
+    return this.prisma.savedPublications.delete({
+      where: {
+          id: savedPublication.id
+      },
+    });
+  }
 }

@@ -98,4 +98,13 @@ export class PostsController {
     return this.postService.savePublication(publicationId, req);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Delete('save')
+  @ApiOperation({ summary: 'Unsave a publication' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
+  unsavePublication(@Req() req: Request, @Body() publicationId: number) {
+    return this.postService.unsavePublication(publicationId, req);
+  }
+
+
 }
