@@ -43,6 +43,8 @@ model Users {
   events                   Events[]          @relation("members")
   communitiesBuilder       Communities[]     @relation("creator")
   communities              Communities[]     @relation("members")
+  publicationsSaved        SavedPublications[]
+  comments                 Comments[]
 }
 
 model Swap {
@@ -139,6 +141,8 @@ model Publications {
   views             View[]
   communities       Communities[]
   events            Events[]
+  savedPublication  SavedPublications[]
+  comments          Comments[]
 }
 
 model Image {
@@ -226,6 +230,25 @@ model Communities {
   members      Users[]        @relation("members")
   publications Publications[]
 }
+
+model SavedPublications {
+  id            Int          @id @default(autoincrement())
+  savedAt       DateTime     @default(now())
+  user          Users        @relation(fields: [userId], references: [id])
+  userId        Int
+  publication   Publications @relation(fields: [publicationId], references: [id])
+  publicationId Int
+}
+
+model Comments {
+  id            Int          @id @default(autoincrement())
+  content       String
+  createdAt     DateTime     @default(now())
+  user          Users        @relation(fields: [userId], references: [id])
+  userId        Int
+  publication   Publications @relation(fields: [publicationId], references: [id])
+  publicationId Int
+} 
 
 model FrontGenre {
   id               Int                @id @default(autoincrement())

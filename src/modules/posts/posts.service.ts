@@ -267,4 +267,66 @@ export class PostsService {
       },
     });
   }
+
+  savePublication(publicationId: number, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    return this.prisma.savedPublications.create({
+      data: {
+        publicationId,
+        userId: decodeToken.id,
+      },
+    });
+  }
+
+  async unsavePublication(publicationId: number, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    const savedPublication = await this.prisma.savedPublications.findFirst({
+      where: {
+        publicationId,
+        userId: decodeToken.id,
+      },
+      select:{
+        id: true
+      }
+    });
+
+    if(!savedPublication){ 
+      throw new HttpException('The publication is not saved', 200);
+    }
+
+    return this.prisma.savedPublications.delete({
+      where: {
+          id: savedPublication.id
+      },
+    });
+  }
+
+  addComment(publicationId: number, comment: string, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    return this.prisma.comments.create({
+      data: {
+        publicationId,
+        userId: decodeToken.id,
+        content: comment,
+      },
+    });
+  }
+
+  deleteComment(commentId: number, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    return this.prisma.comments.delete({
+      where: {
+        id: commentId,
+        userId: decodeToken.id,
+      },
+    });
+  }
 }

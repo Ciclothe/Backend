@@ -89,4 +89,37 @@ export class PostsController {
   addView(@Req() req: Request, @Body() publicationId: number) {
     return this.postService.addView(publicationId, req);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('save')
+  @ApiOperation({ summary: 'Save a publication' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
+  savePublication(@Req() req: Request, @Body() publicationId: number) {
+    return this.postService.savePublication(publicationId, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('save')
+  @ApiOperation({ summary: 'Unsave a publication' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
+  unsavePublication(@Req() req: Request, @Body() publicationId: number) {
+    return this.postService.unsavePublication(publicationId, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('comment')
+  @ApiOperation({ summary: 'Add a comment to a post' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' }, comment: { type: 'string' } } } })
+  addComment(@Req() req: Request, @Body() publicationId: number, comment: string) {
+    return this.postService.addComment(publicationId, comment, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('comment')
+  @ApiOperation({ summary: 'Delete a comment' })
+  @ApiBody({ schema: { type: 'object', properties: { commentId: { type: 'number' } } } })
+  deleteComment(@Req() req: Request, @Body() commentId: number) {
+    return this.postService.deleteComment(commentId, req);
+  }
+
 }
