@@ -304,4 +304,29 @@ export class PostsService {
       },
     });
   }
+
+  addComment(publicationId: number, comment: string, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    return this.prisma.comments.create({
+      data: {
+        publicationId,
+        userId: decodeToken.id,
+        content: comment,
+      },
+    });
+  }
+
+  deleteComment(commentId: number, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    return this.prisma.comments.delete({
+      where: {
+        id: commentId,
+        userId: decodeToken.id,
+      },
+    });
+  }
 }
