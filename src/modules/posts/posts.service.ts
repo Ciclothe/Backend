@@ -267,4 +267,16 @@ export class PostsService {
       },
     });
   }
+
+  savePublication(publicationId: number, req: Request) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    return this.prisma.savedPublications.create({
+      data: {
+        publicationId,
+        userId: decodeToken.id,
+      },
+    });
+  }
 }
