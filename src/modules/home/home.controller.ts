@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { HomeService } from './home.service';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -18,10 +18,17 @@ export class HomeController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('publication')
+  @ApiOperation({ summary: 'Get publication posts' })
+  publicationPosts(@Body() id: number) {
+    return this.homeService.getPublicationById(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('explorer')
   @ApiOperation({ summary: 'Get explorer posts' })
   posts(@Req() req: Request) {
-    return this.homeService.getPost(req);
+    return this.homeService.explorer(req);
   }
 
   @UseGuards(JwtAuthGuard)

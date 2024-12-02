@@ -40,7 +40,9 @@ export class HomeService {
             likes: true,
             _count: {
               select: {
-                views: true,
+                savedPublication: true,
+                comments: true,
+                likes: true,
               },
             },
             createdBy: {
@@ -63,7 +65,47 @@ export class HomeService {
     return allPublications;
   }
 
-  async getPost(req: Request) {
+  async getPublicationById(id: number) {
+    return await this.prisma.publications.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        tags: true,
+        categories: true,
+        image: true,
+        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                userName: true,
+                profilePhoto: true,
+              },
+            },
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            userName: true,
+            profilePhoto: true,
+            qualification: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            savedPublication: true,
+          },
+        },
+      },
+    });
+  }
+
+  async explorer(req: Request) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
