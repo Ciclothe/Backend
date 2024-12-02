@@ -89,4 +89,13 @@ export class PostsController {
   addView(@Req() req: Request, @Body() publicationId: number) {
     return this.postService.addView(publicationId, req);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('save')
+  @ApiOperation({ summary: 'Save a publication' })
+  @ApiBody({ schema: { type: 'object', properties: { publicationId: { type: 'number' } } } })
+  savePublication(@Req() req: Request, @Body() publicationId: number) {
+    return this.postService.savePublication(publicationId, req);
+  }
+
 }
