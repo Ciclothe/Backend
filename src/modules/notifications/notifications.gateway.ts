@@ -15,7 +15,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({
-  namespace: '/notifications',  // Añade el namespace
+  namespace: '/notifications',  
   cors: {
     origin: new ConfigService().get<string>('DEVELOPMENT_URL'),
     methods: ['GET', 'POST'],
@@ -35,6 +35,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   @UseGuards(JwtAuthGuard)
   async handleConnection(client: Socket) {
+    console.log('Client connected:', client.id);
     try {
       const cookies = client.handshake.headers.cookie;
       const token = cookies

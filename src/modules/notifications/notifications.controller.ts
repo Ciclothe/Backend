@@ -23,7 +23,7 @@ export class NotificationsController {
   @Post()
   @ApiOperation({ summary: 'Create notification' })
   @ApiBody({ type: String })
-  createNotification(@Body() notificationMessage: string, @Req() req: Request) {
+  createNotification(@Body("notificationMessage") notificationMessage: string, @Req() req: Request) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -41,7 +41,7 @@ export class NotificationsController {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-
+    console.log(decodeToken.id);
     return this.notificationsService.getNotifications(decodeToken.id);
   }
 
