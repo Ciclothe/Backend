@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { NotificationPayload } from './types/notifications';
 
 @Injectable()
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
-  async createNotification(notificationMessage: string, userId: number) {
+  async createNotification(notificationPayload: NotificationPayload) {
     await this.prisma.notifications.create({
-      data: {
-        userId: userId,
-        content: notificationMessage,
-      },
+      data: notificationPayload
     });
+
+    //TODO: Send notification to user using websockets
 
     return true;
   }

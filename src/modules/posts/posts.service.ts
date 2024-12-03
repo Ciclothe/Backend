@@ -1,6 +1,6 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import {  EditPublicationDto } from './dto/posts.dto';
+import { EditPublicationDto } from './dto/posts.dto';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
@@ -9,17 +9,25 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Publication } from './types/post';
 import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPayload } from '../notifications/types/notifications';
 
 @Injectable()
 export class PostsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationsService,
+  ) {}
 
   async createPost(publication: Publication, req: Request) {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
-      const geocoding = await ltdAndLong(publication.address, publication.postalCode);
+      const geocoding = await ltdAndLong(
+        publication.address,
+        publication.postalCode,
+      );
 
       publication.longitude = geocoding.lng;
       publication.latitude = geocoding.lat;
@@ -102,8 +110,11 @@ export class PostsService {
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
-      if(publication.address){
-        const geocoding = await ltdAndLong(publication.address, publication.postalCode);
+      if (publication.address) {
+        const geocoding = await ltdAndLong(
+          publication.address,
+          publication.postalCode,
+        );
 
         publication.longitude = geocoding.lng;
         publication.latitude = geocoding.lat;
@@ -289,33 +300,58 @@ export class PostsService {
         publicationId,
         userId: decodeToken.id,
       },
-      select:{
-        id: true
-      }
+      select: {
+        id: true,
+      },
     });
 
-    if(!savedPublication){ 
+    if (!savedPublication) {
       throw new HttpException('The publication is not saved', 200);
     }
 
     return this.prisma.savedPublications.delete({
       where: {
-          id: savedPublication.id
+        id: savedPublication.id,
       },
     });
   }
 
-  addComment(publicationId: number, comment: string, req: Request) {
+  async addComment(publicationId: number, comment: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    return this.prisma.comments.create({
+    // save the comment in the database
+    const createdComment = await this.prisma.comments.create({
       data: {
         publicationId,
         userId: decodeToken.id,
         content: comment,
       },
+      select: {
+        publication: {
+          select: {
+            createdBy: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    // create the notification payload
+    const notificationPayload: NotificationPayload = {
+      userId: createdComment.publication.createdBy.id,
+      fromUserId: decodeToken.id,
+      type: 'comment',
+      publicationId,
+      content: comment,
+    };
+
+    await this.notificationService.createNotification(notificationPayload);
+
+    return createdComment;
   }
 
   deleteComment(commentId: number, req: Request) {

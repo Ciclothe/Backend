@@ -45,6 +45,7 @@ model Users {
   communities              Communities[]     @relation("members")
   publicationsSaved        SavedPublications[]
   comments                 Comments[]
+  notificationsSent        Notifications[]   @relation("NotificationSender")
 }
 
 model Swap {
@@ -63,11 +64,14 @@ model Swap {
 
 model Notifications {
   id        Int        @id @default(autoincrement())
-  userId    Int
-  user      Users      @relation(fields: [userId], references: [id])
   content   String
+  type      String      @default("notification")
   isRead    Boolean    @default(false)
   createdAt DateTime   @default(now())
+  userId    Int
+  user      Users      @relation(fields: [userId], references: [id])
+  from      Users?      @relation("NotificationSender", fields: [fromUserId], references: [id])
+  fromUserId    Int?
   sender    ChatRoom[] @relation("NotificationSender")
   messages  Messages[]
   chatRoom  ChatRoom[] @relation("NotificationChatRoom")
