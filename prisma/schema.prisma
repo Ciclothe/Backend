@@ -72,6 +72,8 @@ model Notifications {
   user      Users      @relation(fields: [userId], references: [id])
   from      Users?      @relation("NotificationSender", fields: [fromUserId], references: [id])
   fromUserId    Int?
+  relatedPost  Publications? @relation(fields: [relatedPostId], references: [id])
+  relatedPostId Int?
   sender    ChatRoom[] @relation("NotificationSender")
   messages  Messages[]
   chatRoom  ChatRoom[] @relation("NotificationChatRoom")
@@ -147,6 +149,7 @@ model Publications {
   events            Events[]
   savedPublication  SavedPublications[]
   comments          Comments[]
+  relatedPost       Notifications[]        
 }
 
 model Image {

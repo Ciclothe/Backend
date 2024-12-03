@@ -112,6 +112,8 @@ export class HomeService {
 
       const postSelected = postClasification(categories, publications);
 
+      // TODO: Refactor this to use Prisma's `in` filter
+
       const posts = await this.prisma.publications.findMany({
         where:{
           NOT:{

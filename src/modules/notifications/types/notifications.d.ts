@@ -5,5 +5,5 @@ export interface NotificationPayload {
   fromUserId?: number;
   type: string;
   content: string;
-  publicationId: number;
+  relatedPostId: number;
 }

@@ -1,15 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NotificationPayload } from './types/notifications';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private notificationsGateway: NotificationsGateway) {}
 
   async createNotification(notificationPayload: NotificationPayload) {
     await this.prisma.notifications.create({
       data: notificationPayload
     });
+
+    // Count unread notifications
+    const count = await this.prisma.notifications.count({
+      where: {
+        userId: notificationPayload.userId,
+        isRead: false
+      }
+    }); 
+
+    this.notificationsGateway.handleSendNotification(count);
 
     //TODO: Send notification to user using websockets
 

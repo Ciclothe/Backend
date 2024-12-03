@@ -327,25 +327,14 @@ export class PostsService {
         userId: decodeToken.id,
         content: comment,
       },
-      select: {
-        publication: {
-          select: {
-            createdBy: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     // create the notification payload
     const notificationPayload: NotificationPayload = {
-      userId: createdComment.publication.createdBy.id,
+      userId: decodeToken.id,
       fromUserId: decodeToken.id,
       type: 'comment',
-      publicationId,
+      relatedPostId: publicationId,
       content: comment,
     };
 

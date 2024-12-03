@@ -62,11 +62,11 @@ export class SwapService {
     });
 
     if (user) {
-      const notificationMessage = 'Tienes una nueva solicitud de intercambio';
-      this.notificationGateway.handleSendNotification({
-        userId: user.createdById,
-        content: notificationMessage,
-      });
+      // const notificationMessage = 'Tienes una nueva solicitud de intercambio';
+      // this.notificationGateway.handleSendNotification({
+      //   userId: user.createdById,
+      //   content: notificationMessage,
+      // });
     }
 
     return true;
@@ -109,9 +109,9 @@ export class SwapService {
             ? 'Your exchange request has been rejected'
             : '';
 
-    this.notificationGateway.handleSendNotification({
-      userId: userId.offeredUserId,
-      content: notificationMessage,
-    });
+    // this.notificationGateway.handleSendNotification({
+    //   userId: userId.offeredUserId,
+    //   content: notificationMessage,
+    // });
   }
 }

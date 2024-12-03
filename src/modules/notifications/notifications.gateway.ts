@@ -13,24 +13,26 @@ import * as jwt from 'jsonwebtoken';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { count } from 'console';
 
 @WebSocketGateway({
-  namespace: '/notifications',  
+  namespace: '/notifications',
   cors: {
     origin: new ConfigService().get<string>('DEVELOPMENT_URL'),
     methods: ['GET', 'POST'],
-    credentials: true
-  }
+    credentials: true,
+  },
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
   private users: Map<string, string> = new Map();
 
   constructor(
-    private notificationService: NotificationsService, 
-    private configService: ConfigService 
+    private configService: ConfigService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -55,7 +57,8 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
       if (this.users.has(decoded.name)) {
         const existingSocketId = this.users.get(decoded.name);
-        const existingSocket = this.server.sockets.sockets.get(existingSocketId);
+        const existingSocket =
+          this.server.sockets.sockets.get(existingSocketId);
         if (existingSocket) {
           existingSocket.disconnect();
         }
@@ -76,18 +79,10 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     });
   }
 
-  @SubscribeMessage('sendNotification')
-  async handleSendNotification(
-    @MessageBody() data: { userId: number; content: string },
-  ) {
-    console.log(data);
-    const notification = await this.notificationService.createNotification(
-      data.content,
-      data.userId,
-    );
+  @SubscribeMessage('notification')
+  async handleSendNotification(@MessageBody() count: number) {
+    console.log(count);
 
-    if (notification) {
-      this.server.emit(`notification-${data.userId}`, notification);
-    }
+    this.server.emit('notification', count);
   }
 }
