@@ -8,7 +8,7 @@ export class NotificationsService {
   constructor(private prisma: PrismaService, private notificationsGateway: NotificationsGateway) {}
 
   async createNotification(notificationPayload: NotificationPayload) {
-    
+    console.log(notificationPayload);
     await this.prisma.notifications.create({
       data: notificationPayload
     });
