@@ -4,6 +4,6 @@ export interface NotificationPayload {
   userId: number;
   fromUserId?: number;
   type: string;
-  content: string;
+  content?: string;
   relatedPostId: number;
 }

@@ -23,7 +23,6 @@ model Users {
   password                 String
   accountCreatedAt         DateTime          @default(now())
   profilePhoto             String?           @db.LongText
-  totalLikes               Int               @default(0)
   phoneNumber              String?           @unique
   publications             Publications[] // One-to-many relation
   likes                    Likes[] // One-to-many relation
@@ -64,7 +63,7 @@ model Swap {
 
 model Notifications {
   id        Int        @id @default(autoincrement())
-  content   String
+  content   String?
   type      String      @default("notification")
   isRead    Boolean    @default(false)
   createdAt DateTime   @default(now())
@@ -169,11 +168,11 @@ model Categories {
 model Likes {
   id            Int          @id @default(autoincrement())
   reactionTime  DateTime     @default(now())
-  liked         Boolean      @default(true)
   user          Users        @relation(fields: [userId], references: [id])
   userId        Int
   publication   Publications @relation(fields: [publicationId], references: [id])
   publicationId Int
+  @@unique([userId, publicationId]) 
 }
 
 model View {

@@ -286,75 +286,18 @@ export class HomeService {
   async recommendedProfiles(req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-    const user = await this.prisma.users.findFirst({
+    
+    const users = await this.prisma.users.findFirst({
       where: {
         id: decodeToken.id,
       },
-      select: {
-        following: true,
+      orderBy: {
+        qualification: 'desc',
       },
     });
 
-    const followingIds = user.following.map((follow) => follow.followedById);
-
-    if (followingIds.length >= 1) {
-      const followingUsers = await this.prisma.follow.findMany({
-        where: {
-          followerById: {
-            in: followingIds,
-          },
-        },
-        select: {
-          followed: {
-            select: {
-              id: true,
-              userName: true,
-              profilePhoto: true,
-              totalLikes: true,
-            },
-          },
-        },
-      });
-
-      let filterFollowingUsers: User[] = followingUsers.map(
-        (item) => item.followed,
-      );
-      filterFollowingUsers = filterFollowingUsers.filter(
-        (user) => user.id !== decodeToken.id,
-      );
-
-      for (let i = 0; i < followingIds.length; i++) {
-        filterFollowingUsers = filterFollowingUsers.filter(
-          (user) => user.id !== followingIds[i],
-        );
-      }
-
-      return filterFollowingUsers;
-    } else {
-      const users: User[] = await this.prisma.users.findMany({
-        where: {
-          NOT: {
-            id: decodeToken.id,
-          },
-        },
-        select: {
-          id: true,
-          userName: true,
-          profilePhoto: true,
-          totalLikes: true,
-          country: true,
-          city: true,
-        },
-        orderBy: {
-          totalLikes: 'desc',
-        },
-        take: 3,
-      });
-
-
       return users;
     }
-  }
 
   async filteredPost(parameters: Params, req: Request) {
     const token = req.headers.authorization.split(' ')[1];

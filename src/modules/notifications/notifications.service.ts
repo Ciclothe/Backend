@@ -8,6 +8,7 @@ export class NotificationsService {
   constructor(private prisma: PrismaService, private notificationsGateway: NotificationsGateway) {}
 
   async createNotification(notificationPayload: NotificationPayload) {
+    
     await this.prisma.notifications.create({
       data: notificationPayload
     });
@@ -21,8 +22,6 @@ export class NotificationsService {
     }); 
 
     this.notificationsGateway.handleSendNotification(count);
-
-    //TODO: Send notification to user using websockets
 
     return true;
   }

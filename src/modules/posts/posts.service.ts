@@ -210,40 +210,14 @@ export class PostsService {
     });
 
     if (like) {
-      const updateLike = await this.prisma.likes.update({
+      await this.prisma.likes.delete({
         where: { id: like.id },
-        data: { liked: !like.liked },
-        select: {
-          liked: true,
-          publication: {
-            select: {
-              createdBy: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
       });
-
-      if (updateLike.liked) {
-        await this.prisma.users.update({
-          where: { id: updateLike.publication.createdBy.id },
-          data: { totalLikes: { increment: 1 } },
-        });
-      } else {
-        await this.prisma.users.update({
-          where: { id: updateLike.publication.createdBy.id },
-          data: { totalLikes: { decrement: 1 } },
-        });
-      }
     } else {
       const createLike = await this.prisma.likes.create({
         data: {
           publicationId,
           userId: decodeToken.id,
-          liked: true,
         },
         select: {
           publication: {
@@ -257,11 +231,16 @@ export class PostsService {
           },
         },
       });
+      
+      // create the notification payload
+      const notificationPayload: NotificationPayload = {
+        userId: createLike.publication.createdBy.id,
+        fromUserId: decodeToken.id,
+        type: 'like',
+        relatedPostId: publicationId,
+      };
 
-      await this.prisma.users.update({
-        where: { id: createLike.publication.createdBy.id },
-        data: { totalLikes: { increment: 1 } },
-      });
+      await this.notificationService.createNotification(notificationPayload);
     }
 
     return true;
@@ -327,11 +306,22 @@ export class PostsService {
         userId: decodeToken.id,
         content: comment,
       },
+      select: {
+        publication: {
+          select: {
+            createdBy: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // create the notification payload
     const notificationPayload: NotificationPayload = {
-      userId: decodeToken.id,
+      userId: createdComment.publication.createdBy.id,
       fromUserId: decodeToken.id,
       type: 'comment',
       relatedPostId: publicationId,
