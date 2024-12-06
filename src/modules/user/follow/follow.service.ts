@@ -3,10 +3,12 @@ import { Request } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from '../dto/user.dto';
+import { NotificationPayload, NotificationType } from '../../notifications/types/notifications';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Injectable()
 export class FollowService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private notificationService: NotificationsService) {}
 
   async newFollow(userName: string, req: Request) {
     //Retrieve user id from token
@@ -42,6 +44,16 @@ export class FollowService {
         followerById: decodedToken.id,
       },
     });
+
+    // create the notification payload
+    const notificationPayload: NotificationPayload = {
+      userId: userToFollow.id,
+      fromUserId: decodedToken.id,
+      type: 'follow',
+      content: NotificationType.FOLLOW,
+    };
+
+    await this.notificationService.createNotification(notificationPayload);
 
     return true;
   }

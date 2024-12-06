@@ -1,5 +1,3 @@
-import { from } from 'rxjs';
-
 export interface NotificationPayload {
   userId: number | number[];
   fromUserId?: number;
