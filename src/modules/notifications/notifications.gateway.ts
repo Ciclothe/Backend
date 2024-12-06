@@ -81,7 +81,6 @@ export class NotificationsGateway
 
   @SubscribeMessage('notification')
   async handleSendNotification(@MessageBody() count: number) {
-    console.log(count);
 
     this.server.emit('notification', count);
   }

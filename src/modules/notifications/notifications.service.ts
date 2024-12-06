@@ -15,7 +15,6 @@ export class NotificationsService {
   ) {}
 
   async createNotification(notificationPayload: NotificationPayload) {
-    console.log(notificationPayload);
 
     if (isArray(notificationPayload.userId)) {
       const notifications = notificationPayload.userId.map((userId) => ({
