@@ -19,20 +19,20 @@ import { ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
 export class NotificationsController {
   constructor(private notificationsService: NotificationsService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  @ApiOperation({ summary: 'Create notification' })
-  @ApiBody({ type: String })
-  createNotification(@Body() notificationMessage: string, @Req() req: Request) {
-    // Retrieve user id from token
-    const token = req.headers.authorization.split(' ')[1];
-    const decodeToken = jwt.decode(token) as DecodeDto;
+  // @UseGuards(JwtAuthGuard)
+  // @Post()
+  // @ApiOperation({ summary: 'Create notification' })
+  // @ApiBody({ type: String })
+  // createNotification(@Body("notificationMessage") notificationMessage: string, @Req() req: Request) {
+  //   // Retrieve user id from token
+  //   const token = req.headers.authorization.split(' ')[1];
+  //   const decodeToken = jwt.decode(token) as DecodeDto;
 
-    return this.notificationsService.createNotification(
-      notificationMessage,
-      decodeToken.id,
-    );
-  }
+  //   return this.notificationsService.createNotification(
+  //     notificationMessage,
+  //     decodeToken.id,
+  //   );
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -41,7 +41,7 @@ export class NotificationsController {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-
+    console.log(decodeToken.id);
     return this.notificationsService.getNotifications(decodeToken.id);
   }
 

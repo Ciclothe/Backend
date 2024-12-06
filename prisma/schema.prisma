@@ -23,7 +23,6 @@ model Users {
   password                 String
   accountCreatedAt         DateTime          @default(now())
   profilePhoto             String?           @db.LongText
-  totalLikes               Int               @default(0)
   phoneNumber              String?           @unique
   publications             Publications[] // One-to-many relation
   likes                    Likes[] // One-to-many relation
@@ -45,6 +44,7 @@ model Users {
   communities              Communities[]     @relation("members")
   publicationsSaved        SavedPublications[]
   comments                 Comments[]
+  notificationsSent        Notifications[]   @relation("NotificationSender")
 }
 
 model Swap {
@@ -63,11 +63,18 @@ model Swap {
 
 model Notifications {
   id        Int        @id @default(autoincrement())
-  userId    Int
-  user      Users      @relation(fields: [userId], references: [id])
   content   String
+  type      String      @default("notification")
   isRead    Boolean    @default(false)
   createdAt DateTime   @default(now())
+  userId    Int
+  user      Users      @relation(fields: [userId], references: [id])
+  from      Users?      @relation("NotificationSender", fields: [fromUserId], references: [id])
+  fromUserId    Int?
+  relatedPost  Publications? @relation(fields: [relatedPostId], references: [id])
+  relatedPostId Int?
+  relatedEvent Events? @relation(fields: [relatedEventId], references: [id])
+  relatedEventId Int?
   sender    ChatRoom[] @relation("NotificationSender")
   messages  Messages[]
   chatRoom  ChatRoom[] @relation("NotificationChatRoom")
@@ -143,6 +150,7 @@ model Publications {
   events            Events[]
   savedPublication  SavedPublications[]
   comments          Comments[]
+  relatedPost       Notifications[]        
 }
 
 model Image {
@@ -162,11 +170,11 @@ model Categories {
 model Likes {
   id            Int          @id @default(autoincrement())
   reactionTime  DateTime     @default(now())
-  liked         Boolean      @default(true)
   user          Users        @relation(fields: [userId], references: [id])
   userId        Int
   publication   Publications @relation(fields: [publicationId], references: [id])
   publicationId Int
+  @@unique([userId, publicationId]) 
 }
 
 model View {
@@ -216,6 +224,7 @@ model Events {
   creatorId       Int
   members         Users[]        @relation("members")
   publications    Publications[]
+  notifications   Notifications[]
 }
 
 model Communities {

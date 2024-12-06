@@ -3,14 +3,15 @@ import { Request } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { NotificationsGateway } from 'src/modules/notifications/notifications.gateway';
 import { userResponse } from './types/swap.d';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
 
 @Injectable()
 export class SwapService {
   constructor(
     private prisma: PrismaService,
-    private notificationGateway: NotificationsGateway,
+    private notificationService: NotificationsService,
   ) {}
 
   async swapOptions(req: Request) {
@@ -28,13 +29,14 @@ export class SwapService {
   }
 
   async swapOffer(desiredSwapId: number, offeredSwapIds: number[]) {
+    let desiredPost, offeredPost;
     for (const offeredId of offeredSwapIds) {
-      const desiredPost = await this.prisma.publications.findUnique({
+      desiredPost = await this.prisma.publications.findUnique({
         where: { id: desiredSwapId },
-        select: { createdById: true },
+        select: { createdById: true, id: true },
       });
 
-      const offeredPost = await this.prisma.publications.findUnique({
+      offeredPost = await this.prisma.publications.findUnique({
         where: { id: offeredId },
         select: { createdById: true },
       });
@@ -46,28 +48,21 @@ export class SwapService {
             relatedPostId: desiredSwapId,
             relatedUserId: desiredPost.createdById,
             offeredUserId: offeredPost.createdById,
-            swapState: 'awaiting', // Puedes omitir esto ya que el valor por defecto es "awaiting"
           },
         });
       }
     }
 
-    const user = await this.prisma.publications.findFirst({
-      where: {
-        id: desiredSwapId,
-      },
-      select: {
-        createdById: true,
-      },
-    });
+    // create the notification payload
+    const notificationPayload: NotificationPayload = {
+      userId: desiredPost.createdById,
+      fromUserId: offeredPost.createdById,
+      type: 'swap',
+      content: NotificationType.SWAP,
+      relatedPostId: desiredPost.id,
+    };
 
-    if (user) {
-      const notificationMessage = 'Tienes una nueva solicitud de intercambio';
-      this.notificationGateway.handleSendNotification({
-        userId: user.createdById,
-        content: notificationMessage,
-      });
-    }
+    await this.notificationService.createNotification(notificationPayload);
 
     return true;
   }
@@ -109,9 +104,9 @@ export class SwapService {
             ? 'Your exchange request has been rejected'
             : '';
 
-    this.notificationGateway.handleSendNotification({
-      userId: userId.offeredUserId,
-      content: notificationMessage,
-    });
+    // this.notificationGateway.handleSendNotification({
+    //   userId: userId.offeredUserId,
+    //   content: notificationMessage,
+    // });
   }
 }
