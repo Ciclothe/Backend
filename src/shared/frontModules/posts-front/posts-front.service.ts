@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { typesData, genres, categoriesData } from './data/db-data';
 
 @Injectable()
@@ -80,7 +80,7 @@ export class PostsFrontService {
     return type;
   }
 
-  async categorySelection(typeId: number) {
+  async categorySelection(typeId: string) {
     const categories = await this.prisma.frontCategories.findMany({
       where: {
         FrontProductType: { id: typeId },

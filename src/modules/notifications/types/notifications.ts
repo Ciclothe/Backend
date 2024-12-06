@@ -1,14 +1,14 @@
 export interface NotificationPayload {
-  userId: number | number[];
-  fromUserId?: number;
+  userId: string | string[];
+  fromUserId?: string;
   type: string;
   content: string;
-  relatedPostId?: number;
-  relatedEventId?: number;
+  relatedPostId?: string;
+  relatedEventId?: string;
 }
 
 export interface SingleNotificationPayload extends NotificationPayload {
-  userId: number;
+  userId: string;
 }
 
 export enum NotificationType {

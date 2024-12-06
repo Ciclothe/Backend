@@ -11,7 +11,7 @@ import { NotificationsService } from './notifications.service';
 import { DecodeDto } from '../user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { count } from 'console';
 

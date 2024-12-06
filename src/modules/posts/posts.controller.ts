@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
+  Param,
   Patch,
   Post,
   Req,
@@ -12,7 +14,7 @@ import {
 import { PostsService } from './posts.service';
 import { EditPublicationDto, PostDetailsDto } from './dto/posts.dto';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
@@ -28,6 +30,13 @@ import {
 @Controller('posts')
 export class PostsController {
   constructor(private postService: PostsService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  @ApiOperation({ summary: 'Get publication posts' })
+  publicationPosts(@Param('id') id: string) {
+    return this.postService.getPublicationById(id);
+  }
 
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a post' })
@@ -77,11 +86,11 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
   deletePost(
-    @Body('publicationId') publicationId: number,
+    @Body('publicationId') publicationId: string,
     @Req() req: Request,
   ) {
     return this.postService.deletePublication(publicationId, req);
@@ -92,13 +101,13 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
   @ApiOperation({ summary: 'Add a like to a post' })
   updateLikes(
     @Req() req: Request,
-    @Body('publicationId') publicationId: number,
+    @Body('publicationId') publicationId: string,
   ) {
     return this.postService.updateLikes(publicationId, req);
   }
@@ -109,10 +118,10 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
-  addView(@Req() req: Request, @Body() publicationId: number) {
+  addView(@Req() req: Request, @Body() publicationId: string) {
     return this.postService.addView(publicationId, req);
   }
 
@@ -122,10 +131,10 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
-  savePublication(@Req() req: Request, @Body() publicationId: number) {
+  savePublication(@Req() req: Request, @Body() publicationId: string) {
     return this.postService.savePublication(publicationId, req);
   }
 
@@ -135,10 +144,10 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
-  unsavePublication(@Req() req: Request, @Body() publicationId: number) {
+  unsavePublication(@Req() req: Request, @Body() publicationId: string) {
     return this.postService.unsavePublication(publicationId, req);
   }
 
@@ -149,14 +158,14 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        publicationId: { type: 'nWumber' },
+        publicationId: { type: 'string' },
         comment: { type: 'string' },
       },
     },
   })
   addComment(
     @Req() req: Request,
-    @Body('publicationId') publicationId: number,
+    @Body('publicationId') publicationId: string,
     @Body('comment') comment: string,
   ) {
     return this.postService.addComment(publicationId, comment, req);
@@ -166,9 +175,9 @@ export class PostsController {
   @Delete('comment')
   @ApiOperation({ summary: 'Delete a comment' })
   @ApiBody({
-    schema: { type: 'object', properties: { commentId: { type: 'number' } } },
+    schema: { type: 'object', properties: { commentId: { type: 'string' } } },
   })
-  deleteComment(@Req() req: Request, @Body() commentId: number) {
+  deleteComment(@Req() req: Request, @Body() commentId: string) {
     return this.postService.deleteComment(commentId, req);
   }
 }

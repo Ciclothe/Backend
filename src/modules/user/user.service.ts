@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import {
   ChangeDto,
@@ -141,7 +141,7 @@ export class UserService {
     return updateUser;
   }
 
-  async rating(req: Request, qualifiedUserId: number, rating: number) {
+  async rating(req: Request, qualifiedUserId: string, rating: number) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { SwapService } from './swap.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 
@@ -18,8 +18,8 @@ export class SwapController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({summary: 'Send swap offer'})
-  @ApiBody({schema: {properties: {desiredSwapId: {type: 'number'}, offeredSwapId: {type: 'number'}}}})
-  saveSwapOffer(@Body() {desiredSwapId, offeredSwapId}: {desiredSwapId: number, offeredSwapId: number[]}) {
+  @ApiBody({schema: {properties: {desiredSwapId: {type: 'string'}, offeredSwapId: {type: 'string'}}}})
+  saveSwapOffer(@Body() {desiredSwapId, offeredSwapId}: {desiredSwapId: string, offeredSwapId: string[]}) {
     return this.swapService.swapOffer(desiredSwapId, offeredSwapId);
   }
 

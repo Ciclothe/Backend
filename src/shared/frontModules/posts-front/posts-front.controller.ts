@@ -23,7 +23,6 @@ export class PostsFrontController {
 
   @Get('categories/:id')
   async getCategories(@Param('id') typeId: string) {
-    const id = parseInt(typeId, 10);
-    return await this.postFront.categorySelection(id);
+    return await this.postFront.categorySelection(typeId);
   }
 }

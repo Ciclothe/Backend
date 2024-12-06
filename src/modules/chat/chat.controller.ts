@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';
 
@@ -18,8 +18,8 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @Get('messages/:chatRoomId')
   @ApiOperation({ summary: 'Get messages for a chat room' })
-  @ApiParam({ name: 'chatRoomId', type: 'number' })
+  @ApiParam({ name: 'chatRoomId', type: 'string' })
   getChatMessages(@Param('chatRoomId') chatRoomId: string) {
-    return this.chatService.getChatMessages(parseInt(chatRoomId));
+    return this.chatService.getChatMessages(chatRoomId);
   }
 }

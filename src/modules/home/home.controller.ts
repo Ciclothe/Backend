@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 import { HomeService } from './home.service';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { Filter, FilterName, Params, State } from './types/home';
 import { ParamsCategoryDto } from './dto/home.dto';
 import { ApiOperation } from '@nestjs/swagger';
@@ -15,13 +15,6 @@ export class HomeController {
   @ApiOperation({ summary: 'Get feed posts' })
   homePosts(@Req() req: Request) {
     return this.homeService.homePost(req);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('publication')
-  @ApiOperation({ summary: 'Get publication posts' })
-  publicationPosts(@Body() id: number) {
-    return this.homeService.getPublicationById(id);
   }
 
   @UseGuards(JwtAuthGuard)

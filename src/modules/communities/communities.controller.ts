@@ -15,7 +15,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { CommunitiesService } from './communities.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { CommunitiesDto } from './dto/communities.dto';
 import { Request } from 'express';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';
@@ -41,16 +41,16 @@ export class CommunitiesController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Edit an existing community' })
-  @ApiParam({ name: 'id', type: 'number' })
-  editCommunity(@Param('id') id: number, @Body() community: CommunitiesDto) {
+  @ApiParam({ name: 'id', type: 'string' })
+  editCommunity(@Param('id') id: string, @Body() community: CommunitiesDto) {
     return this.communitiesService.editCommunity(id, community);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  @ApiParam({ name: 'id', type: 'number' })
+  @ApiParam({ name: 'id', type: 'string' })
   @ApiOperation({ summary: 'Delete a community' })
-  deleteCommunity(@Param('id') id: number) {
+  deleteCommunity(@Param('id') id: string) {
     return this.communitiesService.deleteCommunity(id);
   }
 }

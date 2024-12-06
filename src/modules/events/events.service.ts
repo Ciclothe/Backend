@@ -7,8 +7,8 @@ import { CreateEventDto, UpdateEventDto } from './dto/events.dto';
 import { Request } from 'express';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
 
@@ -42,8 +42,7 @@ export class EventsService {
     });
   }
 
-  async getEventById(id: number) {
-    id = Number(id);
+  async getEventById(id: string) {
 
     //Search event by id
     const event = await this.prisma.events.findUnique({
@@ -119,8 +118,7 @@ export class EventsService {
     return true
   }
 
-  async updateEvent(id: number, updateEvent: UpdateEventDto) {
-    id = Number(id);
+  async updateEvent(id: string, updateEvent: UpdateEventDto) {
 
     //Check if event exists
     const existingEvent = await this.prisma.events.findUnique({
@@ -137,8 +135,7 @@ export class EventsService {
     });
   }
 
-  async deleteEvent(id: number) {
-    id = Number(id);
+  async deleteEvent(id: string) {
 
     //Check if event exists
     const existingEvent = await this.prisma.events.findUnique({

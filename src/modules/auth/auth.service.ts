@@ -1,12 +1,12 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { TokenDto, UserRegisterDto } from './dto/auth.dto';
 import { hash, compare } from 'bcryptjs';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 
 @Injectable()
 export class AuthService {

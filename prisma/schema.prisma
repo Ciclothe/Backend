@@ -9,8 +9,8 @@ datasource db {
 }
 
 model Users {
-  id                       Int               @id @default(autoincrement())
-  userName                 String            @unique
+  id                       String              @id @default(uuid())
+  userName                 String              @unique
   dateOfBirth              DateTime
   acceptTermsAndConditions Boolean
   acceptNewsLatters        Boolean
@@ -18,115 +18,114 @@ model Users {
   latitude                 Float?
   country                  String?
   city                     String?
-  qualification            Float             @default(0)
-  email                    String            @unique
+  qualification            Float               @default(0)
+  email                    String              @unique
   password                 String
-  accountCreatedAt         DateTime          @default(now())
-  profilePhoto             String?           @db.LongText
-  phoneNumber              String?           @unique
+  accountCreatedAt         DateTime            @default(now())
+  profilePhoto             String?             @db.LongText
+  phoneNumber              String?             @unique
   publications             Publications[] // One-to-many relation
   likes                    Likes[] // One-to-many relation
   searchHistorial          SearchHistorial[]
-  followers                Follow[]          @relation("Following")
-  following                Follow[]          @relation("Followed")
+  followers                Follow[]            @relation("Following")
+  following                Follow[]            @relation("Followed")
   notifications            Notifications[]
-  swap                     Swap[]            @relation("Desired")
-  swapOffered              Swap[]            @relation("Offered")
-  ChatRoomRecipient        ChatRoom[]        @relation("recipient")
-  ChatRoomSender           ChatRoom[]        @relation("sender")
+  swap                     Swap[]              @relation("Desired")
+  swapOffered              Swap[]              @relation("Offered")
+  ChatRoomRecipient        ChatRoom[]          @relation("recipient")
+  ChatRoomSender           ChatRoom[]          @relation("sender")
   Messages                 Messages[]
   views                    View[]
-  rating                   Rating[]          @relation("qualified")
-  ratingsGiven             Rating[]          @relation("ratedBy")
-  eventBuilder             Events[]          @relation("creator")
-  events                   Events[]          @relation("members")
-  communitiesBuilder       Communities[]     @relation("creator")
-  communities              Communities[]     @relation("members")
+  rating                   Rating[]            @relation("qualified")
+  ratingsGiven             Rating[]            @relation("ratedBy")
+  eventBuilder             Events[]            @relation("creator")
+  events                   Events[]            @relation("members")
+  communitiesBuilder       Communities[]       @relation("creator")
+  communities              Communities[]       @relation("members")
   publicationsSaved        SavedPublications[]
   comments                 Comments[]
-  notificationsSent        Notifications[]   @relation("NotificationSender")
+  notificationsSent        Notifications[]     @relation("NotificationSender")
 }
 
 model Swap {
-  id            Int          @id @default(autoincrement())
-  relatedPostId Int
-  relatedPost   Publications @relation("Desired", fields: [relatedPostId], references: [id])
-  offeredId     Int
+  id            String       @id @default(uuid())
+  relatedPostId String
+  offeredId     String
   swapState     String       @default("awaiting")
-  offeredPost   Publications @relation("Offered", fields: [offeredId], references: [id])
   dateTime      DateTime     @default(now())
-  relatedUserId Int
+  relatedUserId String
+  offeredUserId String
+  relatedPost   Publications @relation("Desired", fields: [relatedPostId], references: [id])
+  offeredPost   Publications @relation("Offered", fields: [offeredId], references: [id])
   relatedUser   Users        @relation("Desired", fields: [relatedUserId], references: [id])
-  offeredUserId Int
   offeredUser   Users        @relation("Offered", fields: [offeredUserId], references: [id])
 }
 
 model Notifications {
-  id        Int        @id @default(autoincrement())
-  content   String
-  type      String      @default("notification")
-  isRead    Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  userId    Int
-  user      Users      @relation(fields: [userId], references: [id])
-  from      Users?      @relation("NotificationSender", fields: [fromUserId], references: [id])
-  fromUserId    Int?
-  relatedPost  Publications? @relation(fields: [relatedPostId], references: [id])
-  relatedPostId Int?
-  relatedEvent Events? @relation(fields: [relatedEventId], references: [id])
-  relatedEventId Int?
-  sender    ChatRoom[] @relation("NotificationSender")
-  messages  Messages[]
-  chatRoom  ChatRoom[] @relation("NotificationChatRoom")
+  id             String        @id @default(uuid())
+  content        String
+  type           String        @default("notification")
+  isRead         Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  userId         String
+  fromUserId     String?
+  relatedPostId  String?
+  relatedEventId String?
+  user           Users         @relation(fields: [userId], references: [id])
+  from           Users?        @relation("NotificationSender", fields: [fromUserId], references: [id])
+  relatedPost    Publications? @relation(fields: [relatedPostId], references: [id])
+  relatedEvent   Events?       @relation(fields: [relatedEventId], references: [id])
+  sender         ChatRoom[]    @relation("NotificationSender")
+  messages       Messages[]
+  chatRoom       ChatRoom[]    @relation("NotificationChatRoom")
 }
 
 model ChatRoom {
-  id                      Int            @id @default(autoincrement())
-  sender                  Users          @relation("sender", fields: [senderId], references: [id])
-  senderId                Int
-  recipient               Users          @relation("recipient", fields: [recipientId], references: [id])
-  recipientId             Int
-  messages                Messages[]
-  notificationsSent       Notifications? @relation("NotificationSender", fields: [notificationsSentId], references: [id])
-  notificationsSentId     Int?
+  id                      String         @id @default(uuid())
+  senderId                String
+  recipientId             String
+  notificationsReceivedId String?
+  notificationsSentId     String?
   notificationsReceived   Notifications? @relation("NotificationChatRoom", fields: [notificationsReceivedId], references: [id])
-  notificationsReceivedId Int?
+  sender                  Users          @relation("sender", fields: [senderId], references: [id])
+  notificationsSent       Notifications? @relation("NotificationSender", fields: [notificationsSentId], references: [id])
+  recipient               Users          @relation("recipient", fields: [recipientId], references: [id])
+  messages                Messages[]
 }
 
 model Messages {
-  id              Int            @id @default(autoincrement())
+  id              String         @id @default(uuid())
   content         String?
   img             String?
   createdAt       DateTime       @default(now())
-  sendById        Int
-  chatRoomId      Int
+  sendById        String
+  chatRoomId      String
+  notificationsId String?
   sendBy          Users          @relation(fields: [sendById], references: [id])
   chatRoom        ChatRoom       @relation(fields: [chatRoomId], references: [id])
   notifications   Notifications? @relation(fields: [notificationsId], references: [id])
-  notificationsId Int?
 }
 
 model Follow {
-  id           Int   @id @default(autoincrement())
-  follower     Users @relation("Followed", fields: [followerById], references: [id])
-  followerById Int
-  followed     Users @relation("Following", fields: [followedById], references: [id])
-  followedById Int
+  id           String @id @default(uuid())
+  followerById String
+  followedById String
+  follower     Users  @relation("Followed", fields: [followerById], references: [id])
+  followed     Users  @relation("Following", fields: [followedById], references: [id])
 }
 
 model Rating {
-  id              Int   @id @default(autoincrement())
+  id              String @id @default(uuid())
   rating          Int
-  qualifiedUser   Users @relation("qualified", references: [id], fields: [qualifiedUserId])
-  qualifiedUserId Int
-  ratedBy         Users @relation("ratedBy", references: [id], fields: [ratedById])
-  ratedById       Int
+  qualifiedUserId String
+  ratedById       String
+  qualifiedUser   Users  @relation("qualified", references: [id], fields: [qualifiedUserId])
+  ratedBy         Users  @relation("ratedBy", references: [id], fields: [ratedById])
 }
 
 model Publications {
-  id                Int           @id @default(autoincrement())
-  createdBy         Users         @relation(fields: [createdById], references: [id])
-  createdById       Int
+  id                String              @id @default(uuid())
+  createdById       String
   title             String
   description       String
   longitude         Float
@@ -136,80 +135,82 @@ model Publications {
   size              String?
   primary_color     String?
   brand             String?
-  reserved          String        @default("No")
-  publicatedAt      DateTime      @default(now())
+  reserved          String              @default("No")
+  publicatedAt      DateTime            @default(now())
   type              String
+  createdBy         Users               @relation(fields: [createdById], references: [id])
   categories        Categories[] //Many-to-many relation
   likes             Likes[] //One-to-many relation
   tags              Tags[] //Many-to-many relation
   image             Image[] // One to many relation
-  swap              Swap[]        @relation("Desired")
-  swapOffered       Swap[]        @relation("Offered")
+  swap              Swap[]              @relation("Desired")
+  swapOffered       Swap[]              @relation("Offered")
   views             View[]
   communities       Communities[]
   events            Events[]
   savedPublication  SavedPublications[]
   comments          Comments[]
-  relatedPost       Notifications[]        
+  relatedPost       Notifications[]
 }
 
 model Image {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(uuid())
   base64        String       @db.LongText
   orientation   String
+  publicationId String
   publication   Publications @relation(fields: [publicationId], references: [id])
-  publicationId Int
 }
 
 model Categories {
-  id           Int            @id @default(autoincrement())
+  id           String         @id @default(uuid())
   name         String         @unique
   publications Publications[] // Many-to-Many
 }
 
 model Likes {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(uuid())
   reactionTime  DateTime     @default(now())
-  user          Users        @relation(fields: [userId], references: [id])
-  userId        Int
+  userId        String
+  publicationId String
+  user Users @relation(fields: [userId], references: [id])
   publication   Publications @relation(fields: [publicationId], references: [id])
-  publicationId Int
-  @@unique([userId, publicationId]) 
+
+  @@unique([userId, publicationId])
 }
 
 model View {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(uuid())
   createdAt     DateTime     @default(now())
+  publicationId String
+  userId        String
   publication   Publications @relation(fields: [publicationId], references: [id])
-  publicationId Int
   user          Users        @relation(fields: [userId], references: [id])
-  userId        Int
 }
 
 model Tags {
-  id           Int            @id @default(autoincrement())
+  id           String         @id @default(uuid())
   name         String         @unique
   publications Publications[] // Many-to-Many
 }
 
 model ResetPassword {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   token     Int
   email     String
   createdAt DateTime @default(now())
 }
 
 model SearchHistorial {
-  id           Int      @id @default(autoincrement())
+  id           String   @id @default(uuid())
   search       String
-  searchedById Int
+  searchedById String
   searchedAt   DateTime @default(now())
   searchedBy   Users    @relation(fields: [searchedById], references: [id])
 }
 
 model Events {
-  id              Int            @id @unique @default(autoincrement())
-  name            String         @unique
+  id              String          @id @default(uuid())
+  name            String          @unique
   description     String
   maxClothes      Int?
   Date            DateTime
@@ -219,61 +220,61 @@ model Events {
   longitude       Float?
   maximumCapacity Int
   photo           String?         @db.LongText
-  verified     Boolean        @default(false)
-  creator         Users          @relation("creator", fields: [creatorId], references: [id])
-  creatorId       Int
-  members         Users[]        @relation("members")
+  verified        Boolean         @default(false)
+  creatorId       String
+  creator         Users           @relation("creator", fields: [creatorId], references: [id])
+  members         Users[]         @relation("members")
   publications    Publications[]
   notifications   Notifications[]
 }
 
 model Communities {
-  id           Int            @id @unique @default(autoincrement())
+  id           String         @id @default(uuid())
   name         String         @unique
   description  String
   category     String
-  photo        String?         @db.LongText
+  photo        String?        @db.LongText
   verified     Boolean        @default(false)
+  creatorId    String
   creator      Users          @relation("creator", fields: [creatorId], references: [id])
-  creatorId    Int
   members      Users[]        @relation("members")
   publications Publications[]
 }
 
 model SavedPublications {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(uuid())
   savedAt       DateTime     @default(now())
+  userId        String
+  publicationId String
   user          Users        @relation(fields: [userId], references: [id])
-  userId        Int
   publication   Publications @relation(fields: [publicationId], references: [id])
-  publicationId Int
 }
 
 model Comments {
-  id            Int          @id @default(autoincrement())
+  id            String       @id @default(uuid())
   content       String
   createdAt     DateTime     @default(now())
-  user          Users        @relation(fields: [userId], references: [id])
-  userId        Int
+  userId        String
+  publicationId String
   publication   Publications @relation(fields: [publicationId], references: [id])
-  publicationId Int
-} 
+  user          Users        @relation(fields: [userId], references: [id])
+}
 
 model FrontGenre {
-  id               Int                @id @default(autoincrement())
+  id               String             @id @default(uuid())
   genre            String             @unique
   icon             String
   FrontProductType FrontProductType[]
 }
 
 model FrontCondition {
-  id        Int    @id @default(autoincrement())
+  id        String @id @default(uuid())
   condition String
   icon      String
 }
 
 model FrontProductType {
-  id              Int               @id @unique @default(autoincrement())
+  id              String            @id @default(uuid())
   type            String
   genre           String
   icon            String
@@ -282,9 +283,9 @@ model FrontProductType {
 }
 
 model FrontCategories {
-  id               Int              @id @unique @default(autoincrement())
+  id               String           @id @default(uuid())
   categories       String
-  typeId           Int
+  typeId           String
   FrontProductType FrontProductType @relation(fields: [typeId], references: [id])
   icon             String
 }

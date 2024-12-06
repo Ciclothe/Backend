@@ -1,5 +1,5 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { EditPublicationDto } from './dto/posts.dto';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -8,9 +8,12 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Publication } from './types/post';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
+import {
+  NotificationPayload,
+  NotificationType,
+} from '../notifications/types/notifications';
 
 @Injectable()
 export class PostsService {
@@ -18,6 +21,46 @@ export class PostsService {
     private prisma: PrismaService,
     private notificationService: NotificationsService,
   ) {}
+
+  async getPublicationById(id: string) {
+    return await this.prisma.publications.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        tags: true,
+        categories: true,
+        image: true,
+        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                userName: true,
+                profilePhoto: true,
+              },
+            },
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            userName: true,
+            profilePhoto: true,
+            qualification: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            savedPublication: true,
+          },
+        },
+      },
+    });
+  }
 
   async createPost(publication: Publication, req: Request) {
     try {
@@ -150,7 +193,7 @@ export class PostsService {
     }
   }
 
-  async deletePublication(publicationId: number, req: Request) {
+  async deletePublication(publicationId: string, req: Request) {
     try {
       //Retrieve user id from token
       const token = req.headers.authorization.split(' ')[1];
@@ -198,7 +241,7 @@ export class PostsService {
     }
   }
 
-  async updateLikes(publicationId: number, req: Request) {
+  async updateLikes(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -231,7 +274,7 @@ export class PostsService {
           },
         },
       });
-      
+
       // create the notification payload
       const notificationPayload: NotificationPayload = {
         userId: createLike.publication.createdBy.id,
@@ -247,7 +290,7 @@ export class PostsService {
     return true;
   }
 
-  async addView(publicationId: number, req: Request) {
+  async addView(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -259,7 +302,7 @@ export class PostsService {
     });
   }
 
-  savePublication(publicationId: number, req: Request) {
+  savePublication(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -271,7 +314,7 @@ export class PostsService {
     });
   }
 
-  async unsavePublication(publicationId: number, req: Request) {
+  async unsavePublication(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -296,7 +339,7 @@ export class PostsService {
     });
   }
 
-  async addComment(publicationId: number, comment: string, req: Request) {
+  async addComment(publicationId: string, comment: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -334,7 +377,7 @@ export class PostsService {
     return createdComment;
   }
 
-  deleteComment(commentId: number, req: Request) {
+  deleteComment(commentId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 

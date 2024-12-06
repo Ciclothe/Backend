@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { ChangeDto, ChangeSensitiveInformationDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -37,8 +37,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Post('rating')
   @ApiOperation({summary: 'Rate user'})
-  @ApiBody({schema: {properties: {qualifiedUserId: {type: 'number'}, rating: {type: 'number'}}}})
-  rating(@Req() req: Request, @Body(){qualifiedUserId, rating}: {qualifiedUserId: number, rating: number}) {
+  @ApiBody({schema: {properties: {qualifiedUserId: {type: 'string'}, rating: {type: 'number'}}}})
+  rating(@Req() req: Request, @Body(){qualifiedUserId, rating}: {qualifiedUserId: string, rating: number}) {
     return this.userService.rating(req, qualifiedUserId, rating);
   }
 

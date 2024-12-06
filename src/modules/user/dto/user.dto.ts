@@ -6,7 +6,7 @@ import {
   IsEmail,
   IsInt,
 } from 'class-validator';
-import { UserRegisterDto } from 'src/auth/dto/auth.dto';
+import { UserRegisterDto } from 'src/modules/auth/dto/auth.dto';
 
 export class ChangeDto {
   @IsOptional()
@@ -41,7 +41,7 @@ export class ChangeSensitiveInformationDto {
 
 export class DecodeDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()

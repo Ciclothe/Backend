@@ -16,15 +16,15 @@ import { ApiProperty } from '@nestjs/swagger';
 export class UserPublicationDto {
   @ApiProperty({ description: 'ID of the user publication' })
   @IsInt()
-  id: number;
+  id: string;
 
   @ApiProperty({ description: 'User ID associated with the publication' })
   @IsInt()
-  userId: number;
+  userId: string;
 
   @ApiProperty({ description: 'Publication ID associated with the user' })
   @IsInt()
-  publicationId: number;
+  publicationId:  string;
 
   @ApiProperty({ description: 'Reaction time of the user' })
   @IsDate()
@@ -34,7 +34,7 @@ export class UserPublicationDto {
 
 export class DecodeDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()
@@ -49,7 +49,7 @@ export class DecodeDto {
 
 export class CategoriesDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()
@@ -70,7 +70,7 @@ export class ParamsCategoryDto {
 
 export class PublicationsDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -80,7 +80,7 @@ export class PublicationsDto {
 
 export class ClasificationDto {
   @IsInt()
-  id: number;
+  id:string;
 
   @IsNumber()
   @Min(0)
@@ -89,7 +89,7 @@ export class ClasificationDto {
 
 export class ClasificationPostDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsNumber()
   @Min(0)

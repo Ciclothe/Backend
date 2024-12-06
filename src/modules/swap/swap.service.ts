@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { userResponse } from './types/swap.d';
@@ -28,7 +28,7 @@ export class SwapService {
     return post;
   }
 
-  async swapOffer(desiredSwapId: number, offeredSwapIds: number[]) {
+  async swapOffer(desiredSwapId: string, offeredSwapIds: string[]) {
     let desiredPost, offeredPost;
     for (const offeredId of offeredSwapIds) {
       desiredPost = await this.prisma.publications.findUnique({
@@ -67,7 +67,7 @@ export class SwapService {
     return true;
   }
 
-  async swapOfferResponse(userRes: userResponse, swapId: number) {
+  async swapOfferResponse(userRes: userResponse, swapId: string) {
     const swapState =
       userRes == 'accept'
         ? 'reserved'

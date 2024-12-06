@@ -54,7 +54,7 @@ export class CreateEventDto {
 
   @ApiProperty({description: 'Event creator id'})
   @IsInt()
-  creatorId: number;
+  creatorId: string;
 }
 
 export class UpdateEventDto {

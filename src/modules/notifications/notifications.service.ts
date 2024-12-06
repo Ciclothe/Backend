@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import {
   NotificationPayload,
   SingleNotificationPayload,
@@ -56,7 +56,7 @@ export class NotificationsService {
     return true;
   }
 
-  async getNotifications(userId: number) {
+  async getNotifications(userId: string) {
     const notifications = await this.prisma.notifications.findMany({
       where: {
         userId,
@@ -66,7 +66,7 @@ export class NotificationsService {
     return notifications;
   }
 
-  async markAsRead(notificationId: number) {
+  async markAsRead(notificationId: string) {
     await this.prisma.notifications.update({
       where: {
         id: notificationId,
@@ -77,7 +77,7 @@ export class NotificationsService {
     });
   }
 
-  async deleteNotification(notificationId: number) {
+  async deleteNotification(notificationId: string) {
     await this.prisma.notifications.delete({
       where: {
         id: notificationId,

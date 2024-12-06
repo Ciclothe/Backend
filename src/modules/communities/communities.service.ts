@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { CommunitiesDto } from './dto/communities.dto';
 import {
   NotFoundException,
@@ -63,9 +63,8 @@ export class CommunitiesService {
     });
   }
 
-  async editCommunity(id: number, community: CommunitiesDto) {
-    id = Number(id);
-
+  async editCommunity(id: string, community: CommunitiesDto) {
+   
     //Check if community exists
     const existingCommunity = await this.prisma.communities.findUnique({
       where: { id },
@@ -86,8 +85,7 @@ export class CommunitiesService {
     });
   }
 
-  async deleteCommunity(id: number) {
-    id = Number(id);
+  async deleteCommunity(id: string) {
 
     //Check if community exists
     const existingCommunity = await this.prisma.communities.findUnique({
