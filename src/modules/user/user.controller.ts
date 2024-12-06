@@ -10,7 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { ChangeDto, ChangeSensitiveInformationDto } from './dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';

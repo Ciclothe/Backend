@@ -1,10 +1,10 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
-import { DecodeDto } from '../dto/user.dto';
-import { NotificationPayload, NotificationType } from '../../notifications/types/notifications';
-import { NotificationsService } from '../../notifications/notifications.service';
+import { DecodeDto } from '../user/dto/user.dto';
+import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class FollowService {

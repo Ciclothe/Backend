@@ -15,7 +15,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { CommunitiesService } from './communities.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { CommunitiesDto } from './dto/communities.dto';
 import { Request } from 'express';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';

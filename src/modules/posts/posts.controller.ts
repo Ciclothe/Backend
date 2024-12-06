@@ -14,7 +14,7 @@ import {
 import { PostsService } from './posts.service';
 import { EditPublicationDto, PostDetailsDto } from './dto/posts.dto';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';

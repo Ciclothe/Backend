@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards } from 
 import { EventsService } from './events.service';
 import { CreateEventDto, UpdateEventDto } from './dto/events.dto';
 import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Controller('events')

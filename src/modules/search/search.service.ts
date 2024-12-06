@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import { SearchIdDto } from './dto/search.dto';
-import { postClasification } from 'src/utils/postClasification';
+import { postClasification } from 'src/shared/utils/postClasification';
 import {
   CategoriesDto,
   DecodeDto,
   PublicationsDto,
   UserPublicationDto,
 } from '../home/dto/home.dto';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 
 @Injectable()
 export class SearchService {

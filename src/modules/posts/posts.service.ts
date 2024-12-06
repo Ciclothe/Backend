@@ -1,5 +1,5 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { EditPublicationDto } from './dto/posts.dto';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Publication } from './types/post';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
 import {
   NotificationPayload,

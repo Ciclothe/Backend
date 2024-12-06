@@ -7,8 +7,8 @@ import { CreateEventDto, UpdateEventDto } from './dto/events.dto';
 import { Request } from 'express';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
 

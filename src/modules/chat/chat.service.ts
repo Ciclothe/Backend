@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { DecodeDto } from '../user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import { ParamsCategoryDto, type DecodeDto } from './dto/home.dto';
 import {
@@ -8,7 +8,7 @@ import {
   PublicationsDto,
   type UserPublicationDto,
 } from './dto/home.dto';
-import { postClasification } from 'src/utils/postClasification';
+import { postClasification } from 'src/shared/utils/postClasification';
 import { Params, User } from './types/home';
 
 @Injectable()
