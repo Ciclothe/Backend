@@ -18,8 +18,8 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @Get('messages/:chatRoomId')
   @ApiOperation({ summary: 'Get messages for a chat room' })
-  @ApiParam({ name: 'chatRoomId', type: 'number' })
+  @ApiParam({ name: 'chatRoomId', type: 'string' })
   getChatMessages(@Param('chatRoomId') chatRoomId: string) {
-    return this.chatService.getChatMessages(parseInt(chatRoomId));
+    return this.chatService.getChatMessages(chatRoomId);
   }
 }

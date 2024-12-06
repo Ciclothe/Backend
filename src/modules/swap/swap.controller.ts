@@ -18,8 +18,8 @@ export class SwapController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({summary: 'Send swap offer'})
-  @ApiBody({schema: {properties: {desiredSwapId: {type: 'number'}, offeredSwapId: {type: 'number'}}}})
-  saveSwapOffer(@Body() {desiredSwapId, offeredSwapId}: {desiredSwapId: number, offeredSwapId: number[]}) {
+  @ApiBody({schema: {properties: {desiredSwapId: {type: 'string'}, offeredSwapId: {type: 'string'}}}})
+  saveSwapOffer(@Body() {desiredSwapId, offeredSwapId}: {desiredSwapId: string, offeredSwapId: string[]}) {
     return this.swapService.swapOffer(desiredSwapId, offeredSwapId);
   }
 

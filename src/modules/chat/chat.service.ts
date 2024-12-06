@@ -78,7 +78,7 @@ export class ChatService {
     }
   }
 
-  async getChatMessages(chatRoomId: number){
+  async getChatMessages(chatRoomId: string){
 
     return await this.prisma.messages.findMany({
       where:{
@@ -93,7 +93,7 @@ export class ChatService {
     });
   }
 
-  async findOrCreateChatRoom(senderId: number, recipientId: number) {
+  async findOrCreateChatRoom(senderId: string, recipientId: string) {
     let chatRoom = await this.prisma.chatRoom.findFirst({
       where: {
         OR: [
@@ -115,7 +115,7 @@ export class ChatService {
     return chatRoom;
   }
 
-  async createMessage(content: string, sendById: number, chatRoomId: number, img?: string) {
+  async createMessage(content: string, sendById: string, chatRoomId: string, img?: string) {
     return this.prisma.messages.create({
       data: {
         content,

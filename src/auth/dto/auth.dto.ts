@@ -64,7 +64,7 @@ export class UserRegisterDto {
 export class TokenDto {
   @IsInt()
   @IsNotEmpty()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()

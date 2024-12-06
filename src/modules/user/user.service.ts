@@ -141,7 +141,7 @@ export class UserService {
     return updateUser;
   }
 
-  async rating(req: Request, qualifiedUserId: number, rating: number) {
+  async rating(req: Request, qualifiedUserId: string, rating: number) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 

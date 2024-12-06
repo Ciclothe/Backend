@@ -41,7 +41,7 @@ export class ChangeSensitiveInformationDto {
 
 export class DecodeDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()

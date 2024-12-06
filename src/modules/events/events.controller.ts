@@ -19,8 +19,8 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation ({summary: 'Get event by id'})
-  @ApiParam({name: 'id', type: 'number'})
-  getEventById(@Param('id') id: number) {
+  @ApiParam({name: 'id', type: 'string'})
+  getEventById(@Param('id') id: string) {
     return this.eventsService.getEventById(id);
   }
 
@@ -34,16 +34,16 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   @ApiOperation ({summary: 'Update event'})
-  @ApiParam({name: 'id', type: 'number'})
-  updateEvent(@Param('id') id: number, @Body() updateEventDto: UpdateEventDto) {
+  @ApiParam({name: 'id', type: 'string'})
+  updateEvent(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
     return this.eventsService.updateEvent(id, updateEventDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation ({summary: 'Delete event'})
-  @ApiParam({name: 'id', type: 'number'})
-  deleteEvent(@Param('id') id: number) {
+  @ApiParam({name: 'id', type: 'string'})
+  deleteEvent(@Param('id') id: string) {
     return this.eventsService.deleteEvent(id);
   }
 }

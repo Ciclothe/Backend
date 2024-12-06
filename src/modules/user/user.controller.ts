@@ -37,8 +37,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Post('rating')
   @ApiOperation({summary: 'Rate user'})
-  @ApiBody({schema: {properties: {qualifiedUserId: {type: 'number'}, rating: {type: 'number'}}}})
-  rating(@Req() req: Request, @Body(){qualifiedUserId, rating}: {qualifiedUserId: number, rating: number}) {
+  @ApiBody({schema: {properties: {qualifiedUserId: {type: 'string'}, rating: {type: 'number'}}}})
+  rating(@Req() req: Request, @Body(){qualifiedUserId, rating}: {qualifiedUserId: string, rating: number}) {
     return this.userService.rating(req, qualifiedUserId, rating);
   }
 

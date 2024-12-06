@@ -77,11 +77,11 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
   deletePost(
-    @Body('publicationId') publicationId: number,
+    @Body('publicationId') publicationId: string,
     @Req() req: Request,
   ) {
     return this.postService.deletePublication(publicationId, req);
@@ -92,13 +92,13 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
   @ApiOperation({ summary: 'Add a like to a post' })
   updateLikes(
     @Req() req: Request,
-    @Body('publicationId') publicationId: number,
+    @Body('publicationId') publicationId: string,
   ) {
     return this.postService.updateLikes(publicationId, req);
   }
@@ -109,10 +109,10 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
-  addView(@Req() req: Request, @Body() publicationId: number) {
+  addView(@Req() req: Request, @Body() publicationId: string) {
     return this.postService.addView(publicationId, req);
   }
 
@@ -122,10 +122,10 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
-  savePublication(@Req() req: Request, @Body() publicationId: number) {
+  savePublication(@Req() req: Request, @Body() publicationId: string) {
     return this.postService.savePublication(publicationId, req);
   }
 
@@ -135,10 +135,10 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'number' } },
+      properties: { publicationId: { type: 'string' } },
     },
   })
-  unsavePublication(@Req() req: Request, @Body() publicationId: number) {
+  unsavePublication(@Req() req: Request, @Body() publicationId: string) {
     return this.postService.unsavePublication(publicationId, req);
   }
 
@@ -149,14 +149,14 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        publicationId: { type: 'nWumber' },
+        publicationId: { type: 'string' },
         comment: { type: 'string' },
       },
     },
   })
   addComment(
     @Req() req: Request,
-    @Body('publicationId') publicationId: number,
+    @Body('publicationId') publicationId: string,
     @Body('comment') comment: string,
   ) {
     return this.postService.addComment(publicationId, comment, req);
@@ -166,9 +166,9 @@ export class PostsController {
   @Delete('comment')
   @ApiOperation({ summary: 'Delete a comment' })
   @ApiBody({
-    schema: { type: 'object', properties: { commentId: { type: 'number' } } },
+    schema: { type: 'object', properties: { commentId: { type: 'string' } } },
   })
-  deleteComment(@Req() req: Request, @Body() commentId: number) {
+  deleteComment(@Req() req: Request, @Body() commentId: string) {
     return this.postService.deleteComment(commentId, req);
   }
 }

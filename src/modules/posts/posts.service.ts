@@ -150,7 +150,7 @@ export class PostsService {
     }
   }
 
-  async deletePublication(publicationId: number, req: Request) {
+  async deletePublication(publicationId: string, req: Request) {
     try {
       //Retrieve user id from token
       const token = req.headers.authorization.split(' ')[1];
@@ -198,7 +198,7 @@ export class PostsService {
     }
   }
 
-  async updateLikes(publicationId: number, req: Request) {
+  async updateLikes(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -247,7 +247,7 @@ export class PostsService {
     return true;
   }
 
-  async addView(publicationId: number, req: Request) {
+  async addView(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -259,7 +259,7 @@ export class PostsService {
     });
   }
 
-  savePublication(publicationId: number, req: Request) {
+  savePublication(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -271,7 +271,7 @@ export class PostsService {
     });
   }
 
-  async unsavePublication(publicationId: number, req: Request) {
+  async unsavePublication(publicationId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -296,7 +296,7 @@ export class PostsService {
     });
   }
 
-  async addComment(publicationId: number, comment: string, req: Request) {
+  async addComment(publicationId: string, comment: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -334,7 +334,7 @@ export class PostsService {
     return createdComment;
   }
 
-  deleteComment(commentId: number, req: Request) {
+  deleteComment(commentId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 

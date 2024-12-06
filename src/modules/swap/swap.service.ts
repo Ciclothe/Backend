@@ -28,7 +28,7 @@ export class SwapService {
     return post;
   }
 
-  async swapOffer(desiredSwapId: number, offeredSwapIds: number[]) {
+  async swapOffer(desiredSwapId: string, offeredSwapIds: string[]) {
     let desiredPost, offeredPost;
     for (const offeredId of offeredSwapIds) {
       desiredPost = await this.prisma.publications.findUnique({
@@ -67,7 +67,7 @@ export class SwapService {
     return true;
   }
 
-  async swapOfferResponse(userRes: userResponse, swapId: number) {
+  async swapOfferResponse(userRes: userResponse, swapId: string) {
     const swapState =
       userRes == 'accept'
         ? 'reserved'

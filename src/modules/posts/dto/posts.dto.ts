@@ -33,7 +33,7 @@ export class EditPublicationDto {
   @ApiProperty({ description: 'ID of the publication' })
   @IsNotEmpty()
   @IsInt()
-  id: number;
+  id: string;
 
   @ApiProperty({ description: 'Title of the publication', required: false })
   @IsOptional()

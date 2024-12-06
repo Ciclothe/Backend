@@ -20,7 +20,7 @@ export class HomeController {
   @UseGuards(JwtAuthGuard)
   @Get('publication')
   @ApiOperation({ summary: 'Get publication posts' })
-  publicationPosts(@Body() id: number) {
+  publicationPosts(@Body() id: string) {
     return this.homeService.getPublicationById(id);
   }
 

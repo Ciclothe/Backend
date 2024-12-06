@@ -65,7 +65,7 @@ export class HomeService {
     return allPublications;
   }
 
-  async getPublicationById(id: number) {
+  async getPublicationById(id: string) {
     return await this.prisma.publications.findUnique({
       where: {
         id,

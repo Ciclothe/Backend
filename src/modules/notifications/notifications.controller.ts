@@ -48,14 +48,16 @@ export class NotificationsController {
   @UseGuards(JwtAuthGuard)
   @Put()
   @ApiOperation({ summary: 'Update notification' })
-  updateNotification(@Body() notificationId: number) {
+  @ApiBody({ type: String })
+  updateNotification(@Body() notificationId: string) {
     return this.notificationsService.markAsRead(notificationId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete()
   @ApiOperation({ summary: 'Delete notification' })
-  deleteNotification(@Body() notificationId: number) {
+  @ApiBody({ type: String })
+  deleteNotification(@Body() notificationId: string) {
     return this.notificationsService.deleteNotification(notificationId);
   }
 }
