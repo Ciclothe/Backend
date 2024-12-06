@@ -10,7 +10,7 @@ import * as path from 'path';
 import { Publication } from './types/post';
 import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationPayload } from '../notifications/types/notifications';
+import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
 
 @Injectable()
 export class PostsService {
@@ -237,6 +237,7 @@ export class PostsService {
         userId: createLike.publication.createdBy.id,
         fromUserId: decodeToken.id,
         type: 'like',
+        content: NotificationType.LIKE,
         relatedPostId: publicationId,
       };
 
@@ -325,7 +326,7 @@ export class PostsService {
       fromUserId: decodeToken.id,
       type: 'comment',
       relatedPostId: publicationId,
-      content: comment,
+      content: NotificationType.COMMENT,
     };
 
     await this.notificationService.createNotification(notificationPayload);

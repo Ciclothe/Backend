@@ -5,7 +5,7 @@ import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { userResponse } from './types/swap.d';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationPayload } from '../notifications/types/notifications';
+import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
 
 @Injectable()
 export class SwapService {
@@ -58,6 +58,7 @@ export class SwapService {
       userId: desiredPost.createdById,
       fromUserId: offeredPost.createdById,
       type: 'swap',
+      content: NotificationType.SWAP,
       relatedPostId: desiredPost.id,
     };
 

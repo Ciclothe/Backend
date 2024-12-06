@@ -10,7 +10,7 @@ import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationPayload } from '../notifications/types/notifications';
+import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
 
 @Injectable()
 export class EventsService {
@@ -110,6 +110,7 @@ export class EventsService {
       userId: follower.map((f) => f.followerById),
       fromUserId: decodeToken.id,
       type: 'event',
+      content: NotificationType.EVENT,
       relatedEventId: event.id,
     };
 
