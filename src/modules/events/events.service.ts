@@ -9,10 +9,12 @@ import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ltdAndLong } from 'src/utils/geocoding/geocoding';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationPayload } from '../notifications/types/notifications';
 
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private notificationService: NotificationsService) {}
 
   async getAllEvents() {
     //TODO: Implement pagination and algorithm to retrieve top events
@@ -75,7 +77,7 @@ export class EventsService {
     createEvent.creatorId = decodeToken.id;
 
     //Create event
-    return this.prisma.events.create({
+    const event = await this.prisma.events.create({
       data: {
         creatorId: createEvent.creatorId,
         name: createEvent.name,
@@ -89,7 +91,31 @@ export class EventsService {
         maximumCapacity: createEvent.maximumCapacity,
         photo: createEvent.photo,
       },
+      select: {
+        id: true,
+      },
     });
+
+    const follower = await this.prisma.follow.findMany({
+      where: {
+        followedById: decodeToken.id,
+      },
+      select: {
+        followerById: true,
+      },
+    });
+
+    // create the notification payload
+    const notificationPayload: NotificationPayload = {
+      userId: follower.map((f) => f.followerById),
+      fromUserId: decodeToken.id,
+      type: 'event',
+      relatedEventId: event.id,
+    };
+
+    await this.notificationService.createNotification(notificationPayload);
+
+    return true
   }
 
   async updateEvent(id: number, updateEvent: UpdateEventDto) {

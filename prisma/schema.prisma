@@ -73,6 +73,8 @@ model Notifications {
   fromUserId    Int?
   relatedPost  Publications? @relation(fields: [relatedPostId], references: [id])
   relatedPostId Int?
+  relatedEvent Events? @relation(fields: [relatedEventId], references: [id])
+  relatedEventId Int?
   sender    ChatRoom[] @relation("NotificationSender")
   messages  Messages[]
   chatRoom  ChatRoom[] @relation("NotificationChatRoom")
@@ -222,6 +224,7 @@ model Events {
   creatorId       Int
   members         Users[]        @relation("members")
   publications    Publications[]
+  notifications   Notifications[]
 }
 
 model Communities {

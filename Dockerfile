@@ -28,4 +28,4 @@ EXPOSE 3000
 # production mode
 # npm run start:prod3
 
-CMD [ "npm", "run", "start"]
+CMD ["node", "dist/main"]
