@@ -10,7 +10,10 @@ import * as path from 'path';
 import { Publication } from './types/post';
 import { ltdAndLong } from 'src/utils/geocoding/geocoding';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationPayload, NotificationType } from '../notifications/types/notifications';
+import {
+  NotificationPayload,
+  NotificationType,
+} from '../notifications/types/notifications';
 
 @Injectable()
 export class PostsService {
@@ -18,6 +21,46 @@ export class PostsService {
     private prisma: PrismaService,
     private notificationService: NotificationsService,
   ) {}
+
+  async getPublicationById(id: string) {
+    return await this.prisma.publications.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        tags: true,
+        categories: true,
+        image: true,
+        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                userName: true,
+                profilePhoto: true,
+              },
+            },
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            userName: true,
+            profilePhoto: true,
+            qualification: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            savedPublication: true,
+          },
+        },
+      },
+    });
+  }
 
   async createPost(publication: Publication, req: Request) {
     try {
@@ -231,7 +274,7 @@ export class PostsService {
           },
         },
       });
-      
+
       // create the notification payload
       const notificationPayload: NotificationPayload = {
         userId: createLike.publication.createdBy.id,

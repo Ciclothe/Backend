@@ -18,13 +18,6 @@ export class HomeController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('publication')
-  @ApiOperation({ summary: 'Get publication posts' })
-  publicationPosts(@Body() id: string) {
-    return this.homeService.getPublicationById(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('explorer')
   @ApiOperation({ summary: 'Get explorer posts' })
   posts(@Req() req: Request) {

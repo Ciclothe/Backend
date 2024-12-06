@@ -9,7 +9,7 @@ import {
   type UserPublicationDto,
 } from './dto/home.dto';
 import { postClasification } from 'src/utils/postClasification';
-import { Params,  User } from './types/home';
+import { Params, User } from './types/home';
 
 @Injectable()
 export class HomeService {
@@ -65,46 +65,6 @@ export class HomeService {
     return allPublications;
   }
 
-  async getPublicationById(id: string) {
-    return await this.prisma.publications.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        tags: true,
-        categories: true,
-        image: true,
-        likes: true,
-        comments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                userName: true,
-                profilePhoto: true,
-              },
-            },
-          },
-        },
-        createdBy: {
-          select: {
-            id: true,
-            userName: true,
-            profilePhoto: true,
-            qualification: true,
-          },
-        },
-        _count: {
-          select: {
-            comments: true,
-            likes: true,
-            savedPublication: true,
-          },
-        },
-      },
-    });
-  }
-
   async explorer(req: Request) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
@@ -157,10 +117,10 @@ export class HomeService {
       // TODO: Refactor this to use Prisma's `in` filter
 
       const posts = await this.prisma.publications.findMany({
-        where:{
-          NOT:{
-            createdById: decodeToken.id
-          }
+        where: {
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
         include: {
           tags: true,
@@ -197,10 +157,10 @@ export class HomeService {
       return postsOrdered;
     } else {
       const posts = await this.prisma.publications.findMany({
-        where:{
-          NOT:{
-            createdById: decodeToken.id
-          }
+        where: {
+          NOT: {
+            createdById: decodeToken.id,
+          },
         },
         include: {
           tags: true,
@@ -286,10 +246,10 @@ export class HomeService {
     const postSelected = postClasification(categories, publications);
 
     const posts = await this.prisma.publications.findMany({
-      where:{
-        NOT:{
-          createdById: decodeToken.id
-        }
+      where: {
+        NOT: {
+          createdById: decodeToken.id,
+        },
       },
       include: {
         tags: true,
@@ -328,7 +288,7 @@ export class HomeService {
   async recommendedProfiles(req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-    
+
     const users = await this.prisma.users.findFirst({
       where: {
         id: decodeToken.id,
@@ -338,8 +298,8 @@ export class HomeService {
       },
     });
 
-      return users;
-    }
+    return users;
+  }
 
   async filteredPost(parameters: Params, req: Request) {
     const token = req.headers.authorization.split(' ')[1];

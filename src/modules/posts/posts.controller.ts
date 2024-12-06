@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
+  Param,
   Patch,
   Post,
   Req,
@@ -28,6 +30,13 @@ import {
 @Controller('posts')
 export class PostsController {
   constructor(private postService: PostsService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  @ApiOperation({ summary: 'Get publication posts' })
+  publicationPosts(@Param('id') id: string) {
+    return this.postService.getPublicationById(id);
+  }
 
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a post' })
