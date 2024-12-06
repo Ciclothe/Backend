@@ -25,11 +25,11 @@ export class SearchController {
   searchPublication(
     @Req() req: Request,
     @Query('search') search: string,
-    @Query('address') addres?: string,
-    @Query('postalCode') postalCode?: string,
+    @Query('latitude') latitude?: number,
+    @Query('longitude') longitude?: number,
     @Query('radius') radius?: string,
   ) {
-    return this.searchService.searchPublications(req, search, addres, postalCode, radius);
+    return this.searchService.searchPublications(req, search, latitude, longitude, radius);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -39,11 +39,11 @@ export class SearchController {
   searchEvents(
     @Req() req: Request,
     @Query('search') search: string,
-    @Query('address') address?: string,
-    @Query('postalCode') postalCode?: string,
+    @Query('latitude') latitude?: number,
+    @Query('longitude') longitude?: number,
     @Query('radius') radius?: string,
   ) {
-    return this.searchService.searchEvents(req, search, address, postalCode, radius);
+    return this.searchService.searchEvents(req, search, latitude, longitude, radius);
   }
 
   @UseGuards(JwtAuthGuard)

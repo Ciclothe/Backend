@@ -19,8 +19,8 @@ export class SearchService {
   async searchPublications(
     req: Request,
     search: string,
-    address?: string,
-    postalCode?: string,
+    lat?: number,
+    lng?: number,
     radius?: string,
   ) {
     // Retrieve user id from token
@@ -34,11 +34,8 @@ export class SearchService {
       },
     });
 
-    if (address && postalCode && radius) {
-      const geocoding = await ltdAndLong(address, postalCode);
-      const lng = geocoding.lng;
-      const lat = geocoding.lat;
-
+    if (lat && lng && radius) {
+     
       const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
 
       const publications = await this.prisma.$queryRaw`
@@ -199,8 +196,8 @@ export class SearchService {
   async searchEvents(
     req: Request,
     search: string,
-    address?: string,
-    postalCode?: string,
+    lat?: number,
+    lng?: number,
     radius?: string,
   ) {
     // Retrieve user id from token
@@ -214,10 +211,7 @@ export class SearchService {
       },
     });
 
-    if (address && postalCode && radius) {
-      const geocoding = await ltdAndLong(address, postalCode);
-      const lng = geocoding.lng;
-      const lat = geocoding.lat;
+    if (lat && lng && radius) {
 
       const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
       console.log(distanceInMeters);
