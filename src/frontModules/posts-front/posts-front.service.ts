@@ -80,7 +80,7 @@ export class PostsFrontService {
     return type;
   }
 
-  async categorySelection(typeId: number) {
+  async categorySelection(typeId: string) {
     const categories = await this.prisma.frontCategories.findMany({
       where: {
         FrontProductType: { id: typeId },
