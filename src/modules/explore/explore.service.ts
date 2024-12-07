@@ -81,7 +81,7 @@ export class ExploreService {
             select: {
               id: true,
               userName: true,
-              profilePhoto: true,
+              profilePicture: true,
               qualification: true,
             },
           },
@@ -121,7 +121,7 @@ export class ExploreService {
             select: {
               id: true,
               userName: true,
-              profilePhoto: true,
+              profilePicture: true,
               qualification: true,
             },
           },
@@ -212,7 +212,7 @@ export class ExploreService {
           select: {
             id: true,
             userName: true,
-            profilePhoto: true,
+            profilePicture: true,
           },
         },
         _count: {

@@ -29,14 +29,14 @@ export class ChatService {
             select: {
               id: true,
               userName: true,
-              profilePhoto: true,
+              profilePicture: true,
             },
           },
           recipient: {
             select: {
               id: true,
               userName: true,
-              profilePhoto: true,
+              profilePicture: true,
             },
           },
           messages: {
@@ -62,7 +62,7 @@ export class ChatService {
           otherUser: {
             id: otherUser.id,
             userName: otherUser.userName,
-            profilePhoto: otherUser.profilePhoto,
+            profilePhoto: otherUser.profilePicture,
           },
           lastMessage: lastMessage
             ? {

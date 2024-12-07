@@ -13,7 +13,7 @@ CREATE TABLE `Users` (
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `accountCreatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `profilePhoto` LONGTEXT NULL,
+    `profilePicture` LONGTEXT NULL,
     `phoneNumber` VARCHAR(191) NULL,
 
     UNIQUE INDEX `Users_userName_key`(`userName`),
@@ -238,6 +238,16 @@ CREATE TABLE `Comments` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Swipe` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` VARCHAR(191) NOT NULL,
+    `publicationId` VARCHAR(191) NOT NULL,
+    `reaction` BOOLEAN NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `FrontGenre` (
     `id` VARCHAR(191) NOT NULL,
     `genre` VARCHAR(191) NOT NULL,
@@ -416,6 +426,12 @@ ALTER TABLE `Comments` ADD CONSTRAINT `Comments_publicationId_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `Comments` ADD CONSTRAINT `Comments_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Swipe` ADD CONSTRAINT `Swipe_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Swipe` ADD CONSTRAINT `Swipe_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `FrontProductType` ADD CONSTRAINT `FrontProductType_genre_fkey` FOREIGN KEY (`genre`) REFERENCES `FrontGenre`(`genre`) ON DELETE RESTRICT ON UPDATE CASCADE;

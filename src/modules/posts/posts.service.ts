@@ -38,7 +38,7 @@ export class PostsService {
               select: {
                 id: true,
                 userName: true,
-                profilePhoto: true,
+                profilePicture: true,
               },
             },
           },
@@ -47,7 +47,7 @@ export class PostsService {
           select: {
             id: true,
             userName: true,
-            profilePhoto: true,
+            profilePicture: true,
             qualification: true,
           },
         },

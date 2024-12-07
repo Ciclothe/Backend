@@ -22,7 +22,7 @@ model Users {
   email                    String              @unique
   password                 String
   accountCreatedAt         DateTime            @default(now())
-  profilePhoto             String?             @db.LongText
+  profilePicture             String?             @db.LongText
   phoneNumber              String?             @unique
   publications             Publications[] // One-to-many relation
   likes                    Likes[] // One-to-many relation
@@ -45,6 +45,7 @@ model Users {
   publicationsSaved        SavedPublications[]
   comments                 Comments[]
   notificationsSent        Notifications[]     @relation("NotificationSender")
+  swipes                   Swipe[]
 }
 
 model Swap {
@@ -151,6 +152,7 @@ model Publications {
   savedPublication  SavedPublications[]
   comments          Comments[]
   relatedPost       Notifications[]
+  swipes            Swipe[]
 }
 
 model Image {
@@ -258,6 +260,15 @@ model Comments {
   publicationId String
   publication   Publications @relation(fields: [publicationId], references: [id])
   user          Users        @relation(fields: [userId], references: [id])
+}
+
+model Swipe{
+  id            String       @id @default(uuid())
+  userId        String
+  publicationId String
+  reaction      Boolean
+  user          Users        @relation(fields: [userId], references: [id])
+  publication   Publications @relation(fields: [publicationId], references: [id])
 }
 
 model FrontGenre {

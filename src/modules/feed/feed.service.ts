@@ -42,7 +42,7 @@ export class FeedService {
               select: {
                 id: true,
                 userName: true,
-                profilePhoto: true,
+                profilePicture: true,
                 qualification: true,
               },
             },

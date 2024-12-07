@@ -26,7 +26,7 @@ export class EventsService {
             id: true,
             userName: true,
             email: true,
-            profilePhoto: true,
+            profilePicture: true,
           },
         },
         members: {
@@ -34,7 +34,7 @@ export class EventsService {
             id: true,
             userName: true,
             email: true,
-            profilePhoto: true,
+            profilePicture: true,
           },
         },
         publications: true,
