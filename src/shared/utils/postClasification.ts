@@ -2,7 +2,7 @@ import {
   CategoriesDto,
   ClasificationDto,
   PublicationsDto,
-} from 'src/modules/home/dto/home.dto';
+} from 'src/modules/feed/dto/feed.dto';
 import { postOrganization } from './postOrganization';
 
 export function postClasification(

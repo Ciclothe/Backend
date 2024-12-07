@@ -2,7 +2,7 @@ import {
   ClasificationDto,
   ClasificationPostDto,
   PublicationsDto,
-} from 'src/modules/home/dto/home.dto';
+} from 'src/modules/feed/dto/feed.dto';
 
 export function postOrganization(
   clasification: ClasificationDto[],

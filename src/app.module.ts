@@ -8,11 +8,13 @@ import { SearchModule } from './modules/search/search.module';
 import { FollowModule } from './modules/follow/follow.module';
 import { SwapModule } from './modules/swap/swap.module';
 import { JwtStrategy } from './modules/auth/strategies/jwt.strategy';
-import { HomeModule } from './modules/home/home.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ConfigModule } from '@nestjs/config';
 import { CommunitiesModule } from './modules/communities/communities.module';
 import { EventsModule } from './modules/events/events.module';
+import { ExploreModule } from './modules/explore/explore.module';
+import { SwipeModule } from './modules/swipe/swipe.module';
+import { FeedModule } from './modules/feed/feed.module';
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { EventsModule } from './modules/events/events.module';
     PostsModule,
     UserModule,
     PrismaModule,
-    HomeModule,
+    FeedModule,
     PostsFrontModule,
     SearchModule,
     FollowModule,
@@ -32,6 +34,8 @@ import { EventsModule } from './modules/events/events.module';
     }),
     CommunitiesModule,
     EventsModule,
+    ExploreModule,
+    SwipeModule,
   ],
   controllers: [],
   providers: [JwtStrategy],

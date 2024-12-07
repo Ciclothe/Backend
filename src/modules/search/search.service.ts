@@ -9,7 +9,7 @@ import {
   DecodeDto,
   PublicationsDto,
   UserPublicationDto,
-} from '../home/dto/home.dto';
+} from '../feed/dto/feed.dto';
 import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 
 @Injectable()

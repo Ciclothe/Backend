@@ -2,17 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
-import { ParamsCategoryDto, type DecodeDto } from './dto/home.dto';
+import { ParamsCategoryDto, type DecodeDto } from './dto/feed.dto';
 import {
   CategoriesDto,
   PublicationsDto,
   type UserPublicationDto,
-} from './dto/home.dto';
+} from './dto/feed.dto';
 import { postClasification } from 'src/shared/utils/postClasification';
-import { Params, User } from './types/home';
+import { Params, User } from './types/feed';
 
 @Injectable()
-export class HomeService {
+export class FeedService {
   constructor(private prisma: PrismaService) {}
 
   async homePost(req: Request) {
