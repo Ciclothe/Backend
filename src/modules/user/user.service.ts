@@ -27,7 +27,7 @@ export class UserService {
         id: true,
         email: true,
         userName: true,
-        profilePhoto: true,
+        profilePicture: true,
       },
     });
 
@@ -50,7 +50,7 @@ export class UserService {
         userName: true,
         email: true,
         accountCreatedAt: true,
-        profilePhoto: true,
+        profilePicture: true,
       },
     });
 
@@ -74,7 +74,7 @@ export class UserService {
       },
       data: {
         userName: infoToUpdate.name,
-        profilePhoto: profilePhoto.originalname,
+        profilePicture: profilePhoto.originalname,
       },
     });
 
