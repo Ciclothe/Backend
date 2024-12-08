@@ -9,20 +9,13 @@ export class ChatService {
   constructor(private prisma: PrismaService) {}
 
   async findUserChats(req: Request) {
-    try {
+    
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
-      // Verifica que el token se haya decodificado correctamente
-      if (!decodeToken || !decodeToken.id) {
-        throw new Error('Invalid token');
-      }
-
-      const userId = decodeToken.id;
-
       const chatRooms = await this.prisma.chatRoom.findMany({
         where: {
-          OR: [{ senderId: userId }, { recipientId: userId }],
+          OR: [{ senderId: decodeToken.id }, { recipientId: decodeToken.id }],
         },
         include: {
           sender: {
@@ -55,7 +48,7 @@ export class ChatService {
       return chatRooms.map((chatRoom) => {
         const lastMessage = chatRoom.messages[0] || null;
         const otherUser =
-          chatRoom.senderId === userId ? chatRoom.recipient : chatRoom.sender;
+          chatRoom.senderId === decodeToken.id ? chatRoom.recipient : chatRoom.sender;
 
         return {
           chatRoomId: chatRoom.id,
@@ -72,10 +65,6 @@ export class ChatService {
             : null,
         };
       });
-    } catch (error) {
-      console.error('Error finding user chats:', error);
-      throw new Error('Could not find user chats');
-    }
   }
 
   async getChatMessages(chatRoomId: string){

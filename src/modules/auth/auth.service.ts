@@ -1,4 +1,9 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { TokenDto, UserRegisterDto } from './dto/auth.dto';
 import { hash, compare } from 'bcryptjs';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
@@ -6,7 +11,6 @@ import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 
 @Injectable()
 export class AuthService {
@@ -21,24 +25,26 @@ export class AuthService {
       where: {
         OR: [{ email: user.email }, { userName: user.userName }],
       },
+      select: {
+        email: true,
+        userName: true,
+      },
     });
 
-    if (existingUser) {
-      if (existingUser.email === user.email) {
-        throw new HttpException('Email already exists', 404);
-      }
-      if (existingUser.userName === user.userName) {
-        throw new HttpException('Username already exists', 400);
-      }
+    if (
+      existingUser.email === user.email ||
+      existingUser.userName === user.userName
+    ) {
+      const conflictField =
+        existingUser.email === user.email ? 'Email' : 'Username';
+      throw new ConflictException(`${conflictField} already exists`);
     }
 
-    const passwordHash = await hash(user.password, 10);
-
-    user = { ...user, password: passwordHash };
+    user = { ...user, password: await hash(user.password, 10)};
 
     //! DEVELOPMENT ONLY
     const selectedDate = new Date(user.dob);
-    
+
     const newUser = await this.prisma.users.create({
       data: {
         email: user.email,
@@ -63,79 +69,50 @@ export class AuthService {
       httpOnly: true,
     });
 
-    const data = {
-      newUser,
-      token,
-    };
-
-    return data;
+    return 'User registered successfully';
   }
 
   async loginUser(user: UserRegisterDto, res: Response) {
-    try {
-      // Search for the user in the database
-      const findUser = await this.prisma.users.findFirst({
-        where: {
-          email: user.email,
-        },
-      });
+    // Search for the user in the database
+    const findUser = await this.prisma.users.findFirst({
+      where: {
+        email: user.email,
+      },
+    });
 
-      // Validate if the user exists
-      if (!findUser) {
-        throw new HttpException('User does not exist', 404);
-      }
-
-      // Validate the password
-      const passwordHashValidation = await compare(
-        user.password,
-        findUser.password,
-      );
-
-      if (!passwordHashValidation) {
-        throw new HttpException('Incorrect password', 400);
-      }
-
-      // Generate JWT token
-      const payload = { id: findUser.id, name: findUser.userName };
-      const token = this.jwtService.sign(payload);
-
-      // Set cookie in the response
-      res.cookie('token', token, {
-        sameSite: 'lax',
-        httpOnly: true,
-      });
-
-      // Build the response object
-      const data = {
-        user: {
-          id: findUser.id,
-          email: findUser.email,
-          name: findUser.userName,
-        },
-        token,
-      };
-
-      // Return the data to the client
-      return data;
-    } catch (error) {
-      // Log errors
-      console.error('Error in loginUser:', error);
-      // Handle errors
-      if (error instanceof HttpException) {
-        throw error;
-      } else {
-        throw new HttpException('Internal Server Error', 500);
-      }
+    if (!findUser) {
+      throw new NotFoundException('User not found');
     }
+
+    // Validate the password
+    const passwordHashValidation = await compare(
+      user.password,
+      findUser.password,
+    );
+
+    if (!passwordHashValidation) {
+      throw new HttpException('Invalid password', 400);
+    }
+
+    // Generate JWT token
+    const payload = { id: findUser.id, name: findUser.userName };
+    const token = this.jwtService.sign(payload);
+
+    // Set cookie in the response
+    res.cookie('token', token, {
+      sameSite: 'lax',
+      httpOnly: true,
+    });
+
+    return 'Logged in successfully'; 
   }
 
   logoutUser(res: Response) {
     res.clearCookie('token');
-
     return 'Logged out';
   }
 
-  async deleteUser(req: Request, res: Response): Promise<void> {
+  async deleteUser(req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as TokenDto;
 
@@ -146,7 +123,7 @@ export class AuthService {
     });
 
     if (!findUser) {
-      throw new HttpException('User dont exist', 404);
+      throw new NotFoundException('User dont exist');
     }
 
     res.clearCookie('token');
@@ -156,6 +133,8 @@ export class AuthService {
         id: findUser.id,
       },
     });
+
+    return 'User deleted successfully';
   }
 
   async resetPasswordToken(email: string) {
@@ -168,7 +147,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException('Email is not registered', 400);
+      throw new NotFoundException('User not found');
     }
 
     await this.prisma.resetPassword.create({

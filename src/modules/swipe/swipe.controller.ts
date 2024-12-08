@@ -34,7 +34,7 @@ export class SwipeController {
   swipeReaction(
     @Req() req: Request,
     @Body('publication id') publicationId: string,
-    @Body('reaction') reaction: string,
+    @Body('reaction') reaction: boolean,
   ) {
     return this.swipeService.swipeReaction(req, publicationId, reaction);
   }
