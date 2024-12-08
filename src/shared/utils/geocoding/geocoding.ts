@@ -18,9 +18,9 @@ export async function ltdAndLong(
       const [lng, lat] = response.data.features[0].geometry.coordinates;
       return { lat, lng }; 
     } else {
-      throw new Error('No se encontraron resultados para la dirección');
+      throw new Error('Address not found');
     }
   } catch (error) {
-    throw new Error(`Error al geocodificar con Mapbox: ${error.message}`);
+    throw new Error(`Mapbox error: ${error.message}`);
   }
 }
