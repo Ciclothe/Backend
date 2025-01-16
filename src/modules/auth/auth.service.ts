@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { TokenDto, UserRegisterDto } from './dto/auth.dto';
+import { TokenDto, UserLoginDto, UserRegisterDto } from './dto/auth.dto';
 import { hash, compare } from 'bcryptjs';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -30,17 +30,17 @@ export class AuthService {
         userName: true,
       },
     });
-
     if (
-      existingUser.email === user.email ||
-      existingUser.userName === user.userName
+      existingUser &&
+      (existingUser.email === user.email ||
+        existingUser.userName === user.userName)
     ) {
       const conflictField =
         existingUser.email === user.email ? 'Email' : 'Username';
       throw new ConflictException(`${conflictField} already exists`);
     }
 
-    user = { ...user, password: await hash(user.password, 10)};
+    user = { ...user, password: await hash(user.password, 10) };
 
     //! DEVELOPMENT ONLY
     const selectedDate = new Date(user.dob);
@@ -69,10 +69,17 @@ export class AuthService {
       httpOnly: true,
     });
 
-    return 'User registered successfully';
+    return res.status(200).json({
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        id: newUser.id,
+        name: newUser.userName,
+      },
+    });
   }
 
-  async loginUser(user: UserRegisterDto, res: Response) {
+  async loginUser(user: UserLoginDto, res: Response) {
     // Search for the user in the database
     const findUser = await this.prisma.users.findFirst({
       where: {
@@ -91,20 +98,26 @@ export class AuthService {
     );
 
     if (!passwordHashValidation) {
-      throw new HttpException('Invalid password', 400);
+      throw new HttpException('User and password do not match', 400);
     }
 
-    // Generate JWT token
+    // Generate the JWT token and set the cookie in the response
     const payload = { id: findUser.id, name: findUser.userName };
     const token = this.jwtService.sign(payload);
 
-    // Set cookie in the response
     res.cookie('token', token, {
       sameSite: 'lax',
       httpOnly: true,
     });
 
-    return 'Logged in successfully'; 
+    return res.status(200).json({
+      success: true,
+      message: 'Logged in successfully',
+      user: {
+        id: findUser.id,
+        name: findUser.userName,
+      },
+    });
   }
 
   logoutUser(res: Response) {
@@ -112,6 +125,7 @@ export class AuthService {
     return 'Logged out';
   }
 
+  // TODO: require password to delete user
   async deleteUser(req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as TokenDto;
@@ -206,6 +220,7 @@ export class AuthService {
     password: string,
     confirmPassword: string,
     token: number,
+    res: Response,
   ) {
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -262,6 +277,9 @@ export class AuthService {
     });
 
     // Return true if everything is successful
-    return true;
+    return res.status(200).json({
+      success: true,
+      message: 'Password changed successfully',
+    });
   }
 }

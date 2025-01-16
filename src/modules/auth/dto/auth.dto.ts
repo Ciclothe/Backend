@@ -52,13 +52,24 @@ export class UserRegisterDto {
 
   @ApiProperty({ description: 'Date of birth of the user' })
   @IsNotEmpty()
-  @IsDate()
   dob: Date;
 
   @ApiProperty({ description: 'Phone number of the user' })
   @IsNotEmpty()
   @IsString()
   phoneNumber: string;
+}
+
+export class UserLoginDto {
+  @ApiProperty({ description: 'Email address of the user' })
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ description: 'Password of the user' })
+  @IsNotEmpty()
+  @IsString()
+  password: string;
 }
 
 export class TokenDto {
