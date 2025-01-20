@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { DecodeDto } from '../user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class ChatService {
@@ -77,12 +77,12 @@ export class ChatService {
   }
 
   async findUserByName(userName: string) {
-    return this.prisma.users.findUnique({
+    return await this.prisma.users.findUnique({
       where: { userName },
     });
   }
 
-  async findOrCreateChatRoom(senderId: string, recipientId: string) {
+  async findOrCreateChatRoom(senderId: string, recipientId: string, res: Response) {
     let chatRoom = await this.prisma.chatRoom.findFirst({
       where: {
         OR: [
@@ -101,11 +101,11 @@ export class ChatService {
       });
     }
 
-    return chatRoom;
+    return res.status(200).json(chatRoom);
   }
 
   async createMessage(content: string, sendById: string, chatRoomId: string, img?: string) {
-    return this.prisma.messages.create({
+    return await this.prisma.messages.create({
       data: {
         content,
         sendById,
