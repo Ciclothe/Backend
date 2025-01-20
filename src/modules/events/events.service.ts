@@ -37,7 +37,7 @@ export class EventsService {
             profilePicture: true,
           },
         },
-        publications: true,
+        posts: true,
       },
     });
   }

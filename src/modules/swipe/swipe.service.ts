@@ -13,23 +13,23 @@ export class SwipeService {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    //Retrieve all publications that the user has already slipped
-    const slippedPublications = await this.prisma.swipe.findMany({
+    //Retrieve all posts that the user has already slipped
+    const slippedPosts = await this.prisma.swipe.findMany({
       where: {
         userId: decodeToken.id,
       },
       select: {
-        publicationId: true,
+        postId: true,
       },
     });
 
-    //Retrieve all publications that the user has not slipped
-    return await this.prisma.publications.findMany({
+    //Retrieve all posts that the user has not slipped
+    return await this.prisma.posts.findMany({
       where: {
         NOT: {
           id: {
-            in: slippedPublications.map(
-              (publication) => publication.publicationId,
+            in: slippedPosts.map(
+              (post) => post.postId,
             ),
           },
         },
@@ -48,7 +48,7 @@ export class SwipeService {
     });
   }
 
-  async swipeReaction(req: Request, publicationId: string, reaction: boolean) {
+  async swipeReaction(req: Request, postId: string, reaction: boolean) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -56,7 +56,7 @@ export class SwipeService {
     await this.prisma.swipe.create({
       data: {
         userId: decodeToken.id,
-        publicationId: publicationId,
+        postId,
         reaction: reaction,
       },
     });

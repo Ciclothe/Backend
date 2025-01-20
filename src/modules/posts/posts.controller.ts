@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { EditPublicationDto, PostDetailsDto } from './dto/posts.dto';
+import { EditPostDto, PostDetailsDto } from './dto/posts.dto';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
@@ -42,11 +42,11 @@ export class PostsController {
   @Patch()
   @ApiOperation({ summary: 'Edit post' })
   editPost(
-    @Body() publication: EditPublicationDto,
+    @Body() post: EditPostDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return this.postService.updatePost(publication, req, res);
+    return this.postService.updatePost(post, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -55,15 +55,15 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
   deletePost(
-    @Body('publicationId') publicationId: string,
+    @Body('postId') postId: string,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return this.postService.deletePublication(publicationId, req, res);
+    return this.postService.deletePost(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -71,16 +71,16 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
   @ApiOperation({ summary: 'Add a like to a post' })
   updateLikes(
     @Req() req: Request,
-    @Body('publicationId') publicationId: string,
+    @Body('postId') postId: string,
     @Res() res: Response,
   ) {
-    return this.postService.updateLikes(publicationId, req, res);
+    return this.postService.updateLikes(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -89,11 +89,11 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
-  addView(@Req() req: Request, @Body() publicationId: string) {
-    return this.postService.addView(publicationId, req);
+  addView(@Req() req: Request, @Body() postId: string) {
+    return this.postService.addView(postId, req);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -102,15 +102,15 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
   saveOrUnsavePost(
     @Req() req: Request,
-    @Body() publicationId: string,
+    @Body() postId: string,
     @Res() res: Response,
   ) {
-    return this.postService.saveOrUnsavePost(publicationId, req, res);
+    return this.postService.saveOrUnsavePost(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -120,18 +120,18 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        publicationId: { type: 'string' },
+        postId: { type: 'string' },
         comment: { type: 'string' },
       },
     },
   })
   addComment(
     @Req() req: Request,
-    @Body('publicationId') publicationId: string,
+    @Body('postId') postId: string,
     @Body('comment') comment: string,
     @Res() res: Response,
   ) {
-    return this.postService.addComment(publicationId, comment, req, res);
+    return this.postService.addComment(postId, comment, req, res);
   }
 
   @UseGuards(JwtAuthGuard)

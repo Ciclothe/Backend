@@ -19,7 +19,7 @@ export class SwapService {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    const post = await this.prisma.publications.findMany({
+    const post = await this.prisma.posts.findMany({
       where: {
         createdById: decodeToken.id,
       },
@@ -31,12 +31,12 @@ export class SwapService {
   async swapOffer(desiredSwapId: string, offeredSwapIds: string[]) {
     let desiredPost, offeredPost;
     for (const offeredId of offeredSwapIds) {
-      desiredPost = await this.prisma.publications.findUnique({
+      desiredPost = await this.prisma.posts.findUnique({
         where: { id: desiredSwapId },
         select: { createdById: true, id: true },
       });
 
-      offeredPost = await this.prisma.publications.findUnique({
+      offeredPost = await this.prisma.posts.findUnique({
         where: { id: offeredId },
         select: { createdById: true },
       });

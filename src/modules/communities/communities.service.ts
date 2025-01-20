@@ -33,7 +33,7 @@ export class CommunitiesService {
             profilePicture: true,
           },
         },
-        publications: true,
+        posts: true,
       },
     });
   }

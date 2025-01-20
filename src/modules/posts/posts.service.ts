@@ -1,6 +1,6 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
-import { EditPublicationDto, PostDetailsDto } from './dto/posts.dto';
+import { EditPostDto, PostDetailsDto } from './dto/posts.dto';
 import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
@@ -19,7 +19,7 @@ export class PostsService {
   ) {}
 
   async getPostById(id: string) {
-    return await this.prisma.publications.findUnique({
+    return await this.prisma.posts.findUnique({
       where: {
         id,
       },
@@ -51,7 +51,7 @@ export class PostsService {
           select: {
             comments: true,
             likes: true,
-            savedPublication: true,
+            savedPost: true,
           },
         },
       },
@@ -68,8 +68,8 @@ export class PostsService {
       postDetails.description.location.postalCode,
     );
 
-    // Create a new publication 
-    const newPublication = await this.prisma.publications.create({
+    // Create a new post
+    const newPost = await this.prisma.posts.create({
       data: {
         title: postDetails.description.title,
         description: postDetails.description.description,
@@ -109,78 +109,78 @@ export class PostsService {
       await this.prisma.image.create({
         data: {
           base64: img.base64,
-          publicationId: newPublication.id,
+          postId: newPost.id,
           orientation: postDetails.orientation,
         },
       });
     }
 
-    return res.status(HttpStatus.CREATED).json(newPublication);
+    return res.status(HttpStatus.CREATED).json(newPost);
   }
 
-  async updatePost(publication: EditPublicationDto, req: Request, res: Response) {
+  async updatePost(post: EditPostDto, req: Request, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    if (publication.address) {
+    if (post.address) {
       const geocoding = await ltdAndLong(
-        publication.address,
-        publication.postalCode,
+        post.address,
+        post.postalCode,
       );
 
-      publication.longitude = geocoding.lng;
-      publication.latitude = geocoding.lat;
+      post.longitude = geocoding.lng;
+      post.latitude = geocoding.lat;
     }
 
     //Update post whit the new information provided
-    await this.prisma.publications.updateMany({
+    await this.prisma.posts.updateMany({
       where: {
-        id: publication.id,
+        id: post.id,
         createdById: decodeToken.id,
       },
       data: {
-        title: publication.title,
-        description: publication.description,
-        latitude: publication.latitude,
-        longitude: publication.longitude,
-        current_condition: publication.currentCondition,
-        reserved: publication.reserved,
+        title: post.title,
+        description: post.description,
+        latitude: post.latitude,
+        longitude: post.longitude,
+        current_condition: post.currentCondition,
+        reserved: post.reserved,
       },
     });
 
     return res.status(HttpStatus.OK).json('Post updated successfully');
   }
 
-  async deletePublication(publicationId: string, req: Request, res: Response) {
+  async deletePost(postId: string, req: Request, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    //Find the publication to delete
-    const findPublication = await this.prisma.publications.findFirst({
+    //Find the post to delete
+    const findPost = await this.prisma.posts.findFirst({
       where: {
-        id: publicationId,
+        id: postId,
         createdById: decodeToken.id,
       },
     });
 
     //Validate if the post is from the user that wants to delete, and if the post exist
-    if (!findPublication) {
-      throw new HttpException('The publication dont exist', 200);
+    if (!findPost) {
+      throw new HttpException('The post dont exist', 200);
     }
 
     //Delete the post, and all the data relationed (images, and connections whit categories and tags)
     await this.prisma.$transaction([
       this.prisma.image.deleteMany({
         where: {
-          publicationId: publicationId,
+          postId: postId,
         },
       }),
 
-      this.prisma.publications.delete({
+      this.prisma.posts.delete({
         where: {
-          id: publicationId,
+          id: postId,
         },
       }),
     ]);
@@ -188,14 +188,14 @@ export class PostsService {
     return res.status(HttpStatus.OK).json('Post deleted successfully');
   }
 
-  async updateLikes(publicationId: string, req: Request, res: Response) {
+  async updateLikes(postId: string, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     const like = await this.prisma.likes.findFirst({
       where: {
         userId: decodeToken.id,
-        publicationId,
+        postId,
       },
     });
 
@@ -206,11 +206,11 @@ export class PostsService {
     } else {
       const createLike = await this.prisma.likes.create({
         data: {
-          publicationId,
+          postId,
           userId: decodeToken.id,
         },
         select: {
-          publication: {
+          post: {
             select: {
               createdBy: {
                 select: {
@@ -224,11 +224,11 @@ export class PostsService {
 
       // create the notification payload
       const notificationPayload: NotificationPayload = {
-        userId: createLike.publication.createdBy.id,
+        userId: createLike.post.createdBy.id,
         fromUserId: decodeToken.id,
         type: 'like',
         content: NotificationType.LIKE,
-        relatedPostId: publicationId,
+        relatedPostId: postId,
       };
 
       await this.notificationService.createNotification(notificationPayload);
@@ -237,25 +237,25 @@ export class PostsService {
     return res.status(HttpStatus.OK).json(true);
   }
 
-  async addView(publicationId: string, req: Request) {
+  async addView(postId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     await this.prisma.view.create({
       data: {
-        publicationId,
+        postId,
         userId: decodeToken.id,
       },
     });
   }
 
-  async saveOrUnsavePost(publicationId: string, req: Request, res: Response) {
+  async saveOrUnsavePost(postId: string, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    const savedPublication = await this.prisma.savedPublications.findFirst({
+    const savedPost = await this.prisma.savedPosts.findFirst({
       where: {
-        publicationId,
+        postId,
         userId: decodeToken.id,
       },
       select: {
@@ -263,11 +263,11 @@ export class PostsService {
       },
     });
 
-    if (!savedPublication) {
+    if (!savedPost) {
       
-      await this.prisma.savedPublications.create({
+      await this.prisma.savedPosts.create({
         data: {
-          publicationId,
+          postId,
           userId: decodeToken.id,
         },
       });
@@ -275,28 +275,28 @@ export class PostsService {
       return res.status(HttpStatus.CREATED).json('Post saved');
     }
 
-    await this.prisma.savedPublications.delete({
+    await this.prisma.savedPosts.delete({
       where: {
-        id: savedPublication.id,
+        id: savedPost.id,
       },
     });
 
     return res.status(HttpStatus.OK).json('Post unsaved');
   }
 
-  async addComment(publicationId: string, comment: string, req: Request, res: Response) {
+  async addComment(postId: string, comment: string, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     // save the comment in the database
     const createdComment = await this.prisma.comments.create({
       data: {
-        publicationId,
+        postId,
         userId: decodeToken.id,
         content: comment,
       },
       select: {
-        publication: {
+        post: {
           select: {
             createdBy: {
               select: {
@@ -310,10 +310,10 @@ export class PostsService {
 
     // create the notification payload
     const notificationPayload: NotificationPayload = {
-      userId: createdComment.publication.createdBy.id,
+      userId: createdComment.post.createdBy.id,
       fromUserId: decodeToken.id,
       type: 'comment',
-      relatedPostId: publicationId,
+      relatedPostId: postId,
       content: NotificationType.COMMENT,
     };
 

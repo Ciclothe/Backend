@@ -29,8 +29,8 @@ export enum Condition {
 }
 
 
-export class EditPublicationDto {
-  @ApiProperty({ description: 'ID of the publication' })
+export class EditPostDto {
+  @ApiProperty({ description: 'Id of the publication' })
   @IsNotEmpty()
   @IsInt()
   id: string;

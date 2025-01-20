@@ -7,8 +7,6 @@ import { postClasification } from 'src/shared/utils/postClasification';
 import {
   CategoriesDto,
   DecodeDto,
-  PublicationsDto,
-  UserPublicationDto,
 } from '../feed/dto/feed.dto';
 import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 
@@ -16,7 +14,7 @@ import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 export class SearchService {
   constructor(private prisma: PrismaService) {}
 
-  async searchPublications(
+  async searchPosts(
     req: Request,
     search: string,
     lat?: number,
@@ -38,13 +36,13 @@ export class SearchService {
      
       const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
 
-      const publications = await this.prisma.$queryRaw`
+      const posts = await this.prisma.$queryRaw`
         SELECT *, 
                ST_Distance_Sphere(
                  POINT(longitude, latitude), 
                  POINT(${lng}, ${lat})
                ) AS distance
-        FROM publications
+        FROM posts
         WHERE 
           ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
           AND (title LIKE ${`%${search}%`} OR description LIKE ${`%${search}%`})
@@ -52,11 +50,11 @@ export class SearchService {
         ORDER BY distance ASC;
       `;
 
-      return publications;
+      return posts;
     }
 
-    // Find publications that match with the search
-    const searchPublications = this.prisma.publications.findMany({
+    // Find posts that match with the search
+    const searchPosts = this.prisma.posts.findMany({
       where: {
         title: {
           contains: search,
@@ -82,7 +80,7 @@ export class SearchService {
         name: search,
       },
       select: {
-        publications: {
+        posts: {
           select: {
             id: true,
             categories: {
@@ -101,7 +99,7 @@ export class SearchService {
         name: search,
       },
       select: {
-        publications: {
+        posts: {
           select: {
             id: true,
             categories: {
@@ -114,29 +112,29 @@ export class SearchService {
       },
     });
 
-    if (!categories[0] && !tags[0] && !searchPublications[0]) {
+    if (!categories[0] && !tags[0] && !searchPosts[0]) {
       return 'No results found';
     }
 
-    //Save all the publications in an array
-    const allPublications = [].concat(
-      searchPublications,
-      categories[0].publications,
-      tags[0].publications,
+    //Save all the posts in an array
+    const allPosts = [].concat(
+      searchPosts,
+      categories[0].posts,
+      tags[0].posts,
     );
 
-    const publications: PublicationsDto[] = [];
+    const post = [];
 
-    //Delete duplicated publications
-    allPublications.forEach((publication) => {
-      // Search if the publication is already in the array
-      const findIndex = publications.findIndex(
+    //Delete duplicated posts
+    allPosts.forEach((publication) => {
+      // Search if the post is already in the array
+      const findIndex = post.findIndex(
         (item) => item.id === publication.id,
       );
 
       if (findIndex === -1) {
-        // If is not, save the publication in the array
-        publications.push({
+        // If is not, save the post in the array
+        post.push({
           id: publication.id,
           categories: publication.categories,
         });
@@ -153,15 +151,15 @@ export class SearchService {
       },
     });
 
-    const userReactions = user[0].likes as UserPublicationDto[];
+    const userReactions = user[0].likes;
 
     const userCategories: CategoriesDto[] = [];
 
-    //Search all the publications liked by the user, and save the categories
+    //Search all the post liked by the user, and save the categories
     for (let i = 0; i < userReactions.length; i++) {
-      const publicationsCategories = await this.prisma.publications.findMany({
+      const postsCategories = await this.prisma.posts.findMany({
         where: {
-          id: userReactions[i].publicationId,
+          id: userReactions[i].postId,
           createdById: {  
             not: decodeToken.id
           }
@@ -172,12 +170,12 @@ export class SearchService {
         },
       });
 
-      userCategories.push(...publicationsCategories[0].categories);
+      userCategories.push(...postsCategories[0].categories);
     }
 
-    const postSelected = postClasification(userCategories, publications);
+    const postSelected = postClasification(userCategories, post);
 
-    const posts = await this.prisma.publications.findMany();
+    const posts = await this.prisma.posts.findMany();
 
     const postsOrdered: any[] = [];
 

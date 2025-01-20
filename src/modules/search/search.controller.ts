@@ -19,17 +19,17 @@ export class SearchController {
   constructor(private searchService: SearchService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('publications')
-  @ApiOperation({ summary: 'Search publications' })
+  @Get('posts')
+  @ApiOperation({ summary: 'Search posts' })
   @ApiQuery({ name: 'search', type: 'string', required: true })
-  searchPublication(
+  searchPosts(
     @Req() req: Request,
     @Query('search') search: string,
     @Query('latitude') latitude?: number,
     @Query('longitude') longitude?: number,
     @Query('radius') radius?: string,
   ) {
-    return this.searchService.searchPublications(req, search, latitude, longitude, radius);
+    return this.searchService.searchPosts(req, search, latitude, longitude, radius);
   }
 
   @UseGuards(JwtAuthGuard)

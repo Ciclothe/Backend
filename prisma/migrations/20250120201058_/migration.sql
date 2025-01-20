@@ -94,15 +94,15 @@ CREATE TABLE `Rating` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Publications` (
+CREATE TABLE `Posts` (
     `id` VARCHAR(191) NOT NULL,
     `createdById` VARCHAR(191) NOT NULL,
     `title` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NOT NULL,
     `longitude` DOUBLE NOT NULL,
     `latitude` DOUBLE NOT NULL,
-    `current_condition` VARCHAR(191) NOT NULL,
-    `gender` VARCHAR(191) NOT NULL,
+    `current_condition` VARCHAR(191) NULL,
+    `gender` VARCHAR(191) NULL,
     `size` VARCHAR(191) NULL,
     `primary_color` VARCHAR(191) NULL,
     `brand` VARCHAR(191) NULL,
@@ -118,7 +118,7 @@ CREATE TABLE `Image` (
     `id` VARCHAR(191) NOT NULL,
     `base64` LONGTEXT NOT NULL,
     `orientation` VARCHAR(191) NOT NULL,
-    `publicationId` VARCHAR(191) NOT NULL,
+    `postId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -137,9 +137,9 @@ CREATE TABLE `Likes` (
     `id` VARCHAR(191) NOT NULL,
     `reactionTime` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `userId` VARCHAR(191) NOT NULL,
-    `publicationId` VARCHAR(191) NOT NULL,
+    `postId` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `Likes_userId_publicationId_key`(`userId`, `publicationId`),
+    UNIQUE INDEX `Likes_userId_postId_key`(`userId`, `postId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -147,7 +147,7 @@ CREATE TABLE `Likes` (
 CREATE TABLE `View` (
     `id` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `publicationId` VARCHAR(191) NOT NULL,
+    `postId` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
@@ -217,11 +217,11 @@ CREATE TABLE `Communities` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `SavedPublications` (
+CREATE TABLE `SavedPosts` (
     `id` VARCHAR(191) NOT NULL,
     `savedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `userId` VARCHAR(191) NOT NULL,
-    `publicationId` VARCHAR(191) NOT NULL,
+    `postId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -232,7 +232,7 @@ CREATE TABLE `Comments` (
     `content` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `userId` VARCHAR(191) NOT NULL,
-    `publicationId` VARCHAR(191) NOT NULL,
+    `postId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -241,7 +241,7 @@ CREATE TABLE `Comments` (
 CREATE TABLE `Swipe` (
     `id` VARCHAR(191) NOT NULL,
     `userId` VARCHAR(191) NOT NULL,
-    `publicationId` VARCHAR(191) NOT NULL,
+    `postId` VARCHAR(191) NOT NULL,
     `reaction` BOOLEAN NOT NULL,
 
     PRIMARY KEY (`id`)
@@ -287,30 +287,30 @@ CREATE TABLE `FrontCategories` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `_PublicationsToTags` (
+CREATE TABLE `_PostsToTags` (
     `A` VARCHAR(191) NOT NULL,
     `B` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `_PublicationsToTags_AB_unique`(`A`, `B`),
-    INDEX `_PublicationsToTags_B_index`(`B`)
+    UNIQUE INDEX `_PostsToTags_AB_unique`(`A`, `B`),
+    INDEX `_PostsToTags_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `_CategoriesToPublications` (
+CREATE TABLE `_CategoriesToPosts` (
     `A` VARCHAR(191) NOT NULL,
     `B` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `_CategoriesToPublications_AB_unique`(`A`, `B`),
-    INDEX `_CategoriesToPublications_B_index`(`B`)
+    UNIQUE INDEX `_CategoriesToPosts_AB_unique`(`A`, `B`),
+    INDEX `_CategoriesToPosts_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `_EventsToPublications` (
+CREATE TABLE `_EventsToPosts` (
     `A` VARCHAR(191) NOT NULL,
     `B` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `_EventsToPublications_AB_unique`(`A`, `B`),
-    INDEX `_EventsToPublications_B_index`(`B`)
+    UNIQUE INDEX `_EventsToPosts_AB_unique`(`A`, `B`),
+    INDEX `_EventsToPosts_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -323,19 +323,19 @@ CREATE TABLE `_members` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `_CommunitiesToPublications` (
+CREATE TABLE `_CommunitiesToPosts` (
     `A` VARCHAR(191) NOT NULL,
     `B` VARCHAR(191) NOT NULL,
 
-    UNIQUE INDEX `_CommunitiesToPublications_AB_unique`(`A`, `B`),
-    INDEX `_CommunitiesToPublications_B_index`(`B`)
+    UNIQUE INDEX `_CommunitiesToPosts_AB_unique`(`A`, `B`),
+    INDEX `_CommunitiesToPosts_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `Swap` ADD CONSTRAINT `Swap_relatedPostId_fkey` FOREIGN KEY (`relatedPostId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Swap` ADD CONSTRAINT `Swap_relatedPostId_fkey` FOREIGN KEY (`relatedPostId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Swap` ADD CONSTRAINT `Swap_offeredId_fkey` FOREIGN KEY (`offeredId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Swap` ADD CONSTRAINT `Swap_offeredId_fkey` FOREIGN KEY (`offeredId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Swap` ADD CONSTRAINT `Swap_relatedUserId_fkey` FOREIGN KEY (`relatedUserId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -350,7 +350,7 @@ ALTER TABLE `Notifications` ADD CONSTRAINT `Notifications_userId_fkey` FOREIGN K
 ALTER TABLE `Notifications` ADD CONSTRAINT `Notifications_fromUserId_fkey` FOREIGN KEY (`fromUserId`) REFERENCES `Users`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Notifications` ADD CONSTRAINT `Notifications_relatedPostId_fkey` FOREIGN KEY (`relatedPostId`) REFERENCES `Publications`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `Notifications` ADD CONSTRAINT `Notifications_relatedPostId_fkey` FOREIGN KEY (`relatedPostId`) REFERENCES `Posts`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Notifications` ADD CONSTRAINT `Notifications_relatedEventId_fkey` FOREIGN KEY (`relatedEventId`) REFERENCES `Events`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -389,19 +389,19 @@ ALTER TABLE `Rating` ADD CONSTRAINT `Rating_qualifiedUserId_fkey` FOREIGN KEY (`
 ALTER TABLE `Rating` ADD CONSTRAINT `Rating_ratedById_fkey` FOREIGN KEY (`ratedById`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Publications` ADD CONSTRAINT `Publications_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Posts` ADD CONSTRAINT `Posts_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Image` ADD CONSTRAINT `Image_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Image` ADD CONSTRAINT `Image_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Likes` ADD CONSTRAINT `Likes_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Likes` ADD CONSTRAINT `Likes_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Likes` ADD CONSTRAINT `Likes_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `View` ADD CONSTRAINT `View_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `View` ADD CONSTRAINT `View_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `View` ADD CONSTRAINT `View_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -416,13 +416,13 @@ ALTER TABLE `Events` ADD CONSTRAINT `Events_creatorId_fkey` FOREIGN KEY (`creato
 ALTER TABLE `Communities` ADD CONSTRAINT `Communities_creatorId_fkey` FOREIGN KEY (`creatorId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `SavedPublications` ADD CONSTRAINT `SavedPublications_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `SavedPosts` ADD CONSTRAINT `SavedPosts_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `SavedPublications` ADD CONSTRAINT `SavedPublications_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `SavedPosts` ADD CONSTRAINT `SavedPosts_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Comments` ADD CONSTRAINT `Comments_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Comments` ADD CONSTRAINT `Comments_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Comments` ADD CONSTRAINT `Comments_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -431,7 +431,7 @@ ALTER TABLE `Comments` ADD CONSTRAINT `Comments_userId_fkey` FOREIGN KEY (`userI
 ALTER TABLE `Swipe` ADD CONSTRAINT `Swipe_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Swipe` ADD CONSTRAINT `Swipe_publicationId_fkey` FOREIGN KEY (`publicationId`) REFERENCES `Publications`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Swipe` ADD CONSTRAINT `Swipe_postId_fkey` FOREIGN KEY (`postId`) REFERENCES `Posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `FrontProductType` ADD CONSTRAINT `FrontProductType_genre_fkey` FOREIGN KEY (`genre`) REFERENCES `FrontGenre`(`genre`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -440,22 +440,22 @@ ALTER TABLE `FrontProductType` ADD CONSTRAINT `FrontProductType_genre_fkey` FORE
 ALTER TABLE `FrontCategories` ADD CONSTRAINT `FrontCategories_typeId_fkey` FOREIGN KEY (`typeId`) REFERENCES `FrontProductType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_PublicationsToTags` ADD CONSTRAINT `_PublicationsToTags_A_fkey` FOREIGN KEY (`A`) REFERENCES `Publications`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_PostsToTags` ADD CONSTRAINT `_PostsToTags_A_fkey` FOREIGN KEY (`A`) REFERENCES `Posts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_PublicationsToTags` ADD CONSTRAINT `_PublicationsToTags_B_fkey` FOREIGN KEY (`B`) REFERENCES `Tags`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_PostsToTags` ADD CONSTRAINT `_PostsToTags_B_fkey` FOREIGN KEY (`B`) REFERENCES `Tags`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_CategoriesToPublications` ADD CONSTRAINT `_CategoriesToPublications_A_fkey` FOREIGN KEY (`A`) REFERENCES `Categories`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_CategoriesToPosts` ADD CONSTRAINT `_CategoriesToPosts_A_fkey` FOREIGN KEY (`A`) REFERENCES `Categories`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_CategoriesToPublications` ADD CONSTRAINT `_CategoriesToPublications_B_fkey` FOREIGN KEY (`B`) REFERENCES `Publications`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_CategoriesToPosts` ADD CONSTRAINT `_CategoriesToPosts_B_fkey` FOREIGN KEY (`B`) REFERENCES `Posts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_EventsToPublications` ADD CONSTRAINT `_EventsToPublications_A_fkey` FOREIGN KEY (`A`) REFERENCES `Events`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_EventsToPosts` ADD CONSTRAINT `_EventsToPosts_A_fkey` FOREIGN KEY (`A`) REFERENCES `Events`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_EventsToPublications` ADD CONSTRAINT `_EventsToPublications_B_fkey` FOREIGN KEY (`B`) REFERENCES `Publications`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_EventsToPosts` ADD CONSTRAINT `_EventsToPosts_B_fkey` FOREIGN KEY (`B`) REFERENCES `Posts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_members` ADD CONSTRAINT `_members_A_fkey` FOREIGN KEY (`A`) REFERENCES `Communities`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -464,7 +464,7 @@ ALTER TABLE `_members` ADD CONSTRAINT `_members_A_fkey` FOREIGN KEY (`A`) REFERE
 ALTER TABLE `_members` ADD CONSTRAINT `_members_B_fkey` FOREIGN KEY (`B`) REFERENCES `Users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_CommunitiesToPublications` ADD CONSTRAINT `_CommunitiesToPublications_A_fkey` FOREIGN KEY (`A`) REFERENCES `Communities`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_CommunitiesToPosts` ADD CONSTRAINT `_CommunitiesToPosts_A_fkey` FOREIGN KEY (`A`) REFERENCES `Communities`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_CommunitiesToPublications` ADD CONSTRAINT `_CommunitiesToPublications_B_fkey` FOREIGN KEY (`B`) REFERENCES `Publications`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `_CommunitiesToPosts` ADD CONSTRAINT `_CommunitiesToPosts_B_fkey` FOREIGN KEY (`B`) REFERENCES `Posts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

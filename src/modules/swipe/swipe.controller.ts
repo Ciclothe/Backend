@@ -22,7 +22,7 @@ export class SwipeController {
     schema: {
       type: 'object',
       properties: {
-        'publication id': {
+        'post id': {
           type: 'string',
         },
         reaction: {
@@ -33,9 +33,9 @@ export class SwipeController {
   })
   swipeReaction(
     @Req() req: Request,
-    @Body('publication id') publicationId: string,
+    @Body('postId') postId: string,
     @Body('reaction') reaction: boolean,
   ) {
-    return this.swipeService.swipeReaction(req, publicationId, reaction);
+    return this.swipeService.swipeReaction(req, postId, reaction);
   }
 }

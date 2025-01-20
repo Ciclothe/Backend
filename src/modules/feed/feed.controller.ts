@@ -10,9 +10,9 @@ export class FeedController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @ApiOperation({ summary: 'Get feed publications' })
-  feedPublications(@Req() req: Request) {
-    return this.feedService.feedPublications(req);
+  @ApiOperation({ summary: 'Get feed posts' })
+  feedPosts(@Req() req: Request) {
+    return this.feedService.feedPosts(req);
   }
 
   @UseGuards(JwtAuthGuard)

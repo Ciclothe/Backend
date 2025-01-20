@@ -8,7 +8,7 @@ import { type DecodeDto } from './dto/feed.dto';
 export class FeedService {
   constructor(private prisma: PrismaService) {}
 
-  async feedPublications(req: Request) {
+  async feedPosts(req: Request) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -22,7 +22,7 @@ export class FeedService {
         },
       },
       select: {
-        publications: {
+        posts: {
           orderBy: {
             publicatedAt: 'desc',
           },
@@ -33,7 +33,7 @@ export class FeedService {
             likes: true,
             _count: {
               select: {
-                savedPublication: true,
+                savedPost: true,
                 comments: true,
                 likes: true,
               },
@@ -51,11 +51,11 @@ export class FeedService {
       },
     });
 
-    const allPublications = followedUsersPost.flatMap(
-      (user) => user.publications,
+    const allPosts = followedUsersPost.flatMap(
+      (user) => user.posts,
     );
 
-    return allPublications;
+    return allPosts;
   }
 
   async recommendedProfiles(req: Request) {
