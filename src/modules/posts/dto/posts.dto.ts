@@ -167,19 +167,6 @@ class DescriptionDto {
   tags: string[];
 }
 
-class CategoresDto {
-  @ApiProperty({ description: 'Genre identifier' })
-  @IsInt()
-  genre: number;
-
-  @ApiProperty({ description: 'Type identifier' })
-  @IsInt()
-  type: number;
-
-  @ApiProperty({ description: 'Category identifier' })
-  @IsInt()
-  category: number;
-}
 
 class MediaDto {
   @ApiProperty({ description: 'Name of the media file' })
@@ -196,25 +183,34 @@ class MediaDto {
 
 }
 
+class CategoriesDto {
+  @ApiProperty({ description: 'gender' })
+  @IsString()
+  genre: string;
+
+  @ApiProperty({ description: 'category' })
+  @IsString()
+  type: string;
+
+  @ApiProperty({ description: 'category' })
+  @IsString()
+  category: string;
+}
 
 export class PostDetailsDto {
   @ApiProperty({ description: 'Condition of the item' })
-  @ValidateNested()
   condition: string;
 
   @ApiProperty({ description: 'Categories of the item' })
-  @IsArray()
   @ValidateNested({ each: true })
-  categories: any;
+  categories: CategoriesDto;
 
   @ApiProperty({ description: 'Description details of the item' })
   @ValidateNested()
-  @Type(() => DescriptionDto)
   description: DescriptionDto;
 
   @ApiProperty({ description: 'Media files associated with the item', type: [MediaDto] })
   @IsArray()
-  @ValidateNested({ each: true })
   @Type(() => MediaDto)
   media: MediaDto[];
 
