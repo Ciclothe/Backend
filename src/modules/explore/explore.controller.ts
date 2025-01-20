@@ -13,20 +13,20 @@ export class ExploreController {
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get explorer posts' })
-  explorePublications(@Req() req: Request) {
+  explorePosts(@Req() req: Request) {
     return this.exploreService.explore(req);
   }
 
-  //TODO: Trending publications
+  //TODO: Trending posts
 
   @UseGuards(JwtAuthGuard)
   @Get(':category/:subcategory?')
   @ApiOperation({ summary: 'Get categorized posts' })
-  categorizedPublications(
+  categorizedPosts(
     @Req() req: Request,
     @Param() categoriesParam: ParamsCategoryDto,
   ) {
-    return this.exploreService.categorizedPublications(req, categoriesParam);
+    return this.exploreService.categorizedPosts(req, categoriesParam);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -42,6 +42,6 @@ export class ExploreController {
       filter,
     };
 
-    return this.exploreService.filteredPublications(parameters, req);
+    return this.exploreService.filteredPosts(parameters, req);
   }
 }
