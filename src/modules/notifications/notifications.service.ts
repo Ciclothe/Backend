@@ -6,6 +6,7 @@ import {
 } from './types/notifications';
 import { NotificationsGateway } from './notifications.gateway';
 import { isArray } from 'class-validator';
+import { Response } from 'express';
 
 @Injectable()
 export class NotificationsService {
@@ -14,7 +15,7 @@ export class NotificationsService {
     private notificationsGateway: NotificationsGateway,
   ) {}
 
-  async createNotification(notificationPayload: NotificationPayload) {
+  async createNotification(notificationPayload: NotificationPayload, res: Response) {
 
     if (isArray(notificationPayload.userId)) {
       const notifications = notificationPayload.userId.map((userId) => ({
@@ -53,17 +54,17 @@ export class NotificationsService {
       this.notificationsGateway.handleSendNotification(count);
     }
 
-    return true;
+    return res.status(200).json({ message: 'Notification created' });
   }
 
-  async getNotifications(userId: string) {
+  async getNotifications(userId: string, res: Response) {
     const notifications = await this.prisma.notifications.findMany({
       where: {
         userId,
       },
     });
 
-    return notifications;
+    return res.status(200).json(notifications);
   }
 
   async markAsRead(notificationId: string) {

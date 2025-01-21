@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
-import { SearchIdDto } from './dto/search.dto';
 import { postClasification } from 'src/shared/utils/postClasification';
 import {
   CategoriesDto,
   DecodeDto,
 } from '../feed/dto/feed.dto';
-import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
 
 @Injectable()
 export class SearchService {
@@ -16,10 +14,11 @@ export class SearchService {
 
   async searchPosts(
     req: Request,
+    res: Response,
     search: string,
     lat?: number,
     lng?: number,
-    radius?: string,
+    radius?: string
   ) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
@@ -50,7 +49,7 @@ export class SearchService {
         ORDER BY distance ASC;
       `;
 
-      return posts;
+      return res.status(200).json(posts);
     }
 
     // Find posts that match with the search
@@ -113,7 +112,7 @@ export class SearchService {
     });
 
     if (!categories[0] && !tags[0] && !searchPosts[0]) {
-      return 'No results found';
+      return res.status(404).json({ message: 'No posts found' });
     }
 
     //Save all the posts in an array
@@ -188,11 +187,12 @@ export class SearchService {
       }
     });
 
-    return postsOrdered;
+    return res.status(200).json(postsOrdered);
   }
 
   async searchEvents(
     req: Request,
+    res: Response,
     search: string,
     lat?: number,
     lng?: number,
@@ -212,7 +212,6 @@ export class SearchService {
     if (lat && lng && radius) {
 
       const distanceInMeters = parseFloat(radius) * 1000; // Convert km to meters
-      console.log(distanceInMeters);
       const events = await this.prisma.$queryRaw`
         SELECT *, 
                ST_Distance_Sphere(
@@ -224,11 +223,10 @@ export class SearchService {
           ST_Distance_Sphere(POINT(longitude, latitude), POINT(${lng}, ${lat})) <= ${distanceInMeters}
         ORDER BY distance ASC;
       `;
-
-      return events;
+      return res.status(200).json(events);
     }
 
-    return this.prisma.events.findMany({
+    const events = await this.prisma.events.findMany({
       where: {
         name: {
           contains: search,
@@ -236,9 +234,11 @@ export class SearchService {
         },
       },
     });
+
+    return res.status(200).json(events);
   }
 
-  async searchCommunities(req: Request, search: string) {
+  async searchCommunities(req: Request, search: string, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -250,7 +250,7 @@ export class SearchService {
       },
     });
 
-    return this.prisma.communities.findMany({
+     const communities = await this.prisma.communities.findMany({
       where: {
         name: {
           contains: search,
@@ -258,9 +258,11 @@ export class SearchService {
         },
       },
     });
+
+    return res.status(200).json(communities);
   }
 
-  async searchUsers(req: Request, search: string) {
+  async searchUsers(req: Request, search: string, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -272,7 +274,7 @@ export class SearchService {
       },
     });
 
-    return this.prisma.users.findMany({
+    const users = await this.prisma.users.findMany({
       where: {
         userName: {
           contains: search,
@@ -280,24 +282,28 @@ export class SearchService {
         },
       },
     });
+
+    return res.status(200).json(users);
   }
 
-  async getSearchHistory(req: Request) {
+  async getSearchHistory(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     // Search the history of the user withouth duplicates
-    return await this.prisma.$queryRaw`
+    const history = await this.prisma.$queryRaw`
       SELECT search, MAX(searchedAt) AS latestSearchedAt
       FROM searchhistorial
       WHERE searchedById = ${decodeToken.id}
       GROUP BY search
       ORDER BY latestSearchedAt DESC;
     `;
+
+    return res.status(200).json(history);
   }
 
-  async deleteSearch(search: string, req: Request) {
+  async deleteSearch(search: string, req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -320,7 +326,7 @@ export class SearchService {
       },
     });
 
-    return true;
+    return res.status(200).json({ message: 'Search deleted' });
   }
 
   async deleteSearchHistory(req: Request) {

@@ -7,7 +7,7 @@ import {
 } from '../feed/dto/feed.dto';
 import { DecodeDto } from '../user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { postClasification } from 'src/shared/utils/postClasification';
 import { ParamsCategoryDto } from './dto/explore.dto';
 import { ParamsInterface } from './types/explore';
@@ -16,7 +16,7 @@ import { ParamsInterface } from './types/explore';
 export class ExploreService {
   constructor(private prisma: PrismaService) {}
 
-  async explore(req: Request) {
+  async explore(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -78,15 +78,15 @@ export class ExploreService {
         .map((id) => allPosts.find((post) => post.id === id))
         .filter((post) => post);
 
-      return postsOrdered;
+      return res.status(200).json(postsOrdered);
     } else {
       // If no likes, order posts by the number of likes
       allPosts.sort((a, b) => b.likes.length - a.likes.length);
-      return allPosts;
+      return res.status(200).json(allPosts);
     }
   }
 
-  async categorizedPosts(req: Request, categoriesParam: ParamsCategoryDto) {
+  async categorizedPosts(req: Request, categoriesParam: ParamsCategoryDto, res: Response) {
     // Decode user ID from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -177,10 +177,10 @@ export class ExploreService {
       .map((id) => detailedPosts.find((post) => post.id === id))
       .filter(Boolean); // Remove undefined results
 
-    return postsOrdered;
+    return res.status(200).json(postsOrdered);
   }
 
-  async filteredPosts(parameters: ParamsInterface, req: Request) {
+  async filteredPosts(parameters: ParamsInterface, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -209,6 +209,8 @@ export class ExploreService {
     }
 
     // Perform the query with the selected filter condition
-    return await this.prisma.posts.findMany(filterCondition);
+    const filteredPost = await this.prisma.posts.findMany(filterCondition);
+
+    return res.status(200).json(filteredPost);
   }
 }

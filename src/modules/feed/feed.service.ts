@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import { type DecodeDto } from './dto/feed.dto';
@@ -8,7 +8,7 @@ import { type DecodeDto } from './dto/feed.dto';
 export class FeedService {
   constructor(private prisma: PrismaService) {}
 
-  async feedPosts(req: Request) {
+  async feedPosts(req: Request, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -55,10 +55,10 @@ export class FeedService {
       (user) => user.posts,
     );
 
-    return allPosts;
+    return res.status(200).json(allPosts);
   }
 
-  async recommendedProfiles(req: Request) {
+  async recommendedProfiles(req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
@@ -71,6 +71,6 @@ export class FeedService {
       },
     });
 
-    return users;
+    return res.status(200).json(users);
   }
 }

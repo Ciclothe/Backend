@@ -6,11 +6,12 @@ import {
   Post,
   Put,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import { ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
@@ -37,12 +38,12 @@ export class NotificationsController {
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get notifications' })
-  getNotifications(@Req() req: Request) {
+  getNotifications(@Req() req: Request, @Res() res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
     console.log(decodeToken.id);
-    return this.notificationsService.getNotifications(decodeToken.id);
+    return this.notificationsService.getNotifications(decodeToken.id, res);
   }
 
   @UseGuards(JwtAuthGuard)

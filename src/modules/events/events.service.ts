@@ -118,7 +118,7 @@ export class EventsService {
       relatedEventId: event.id,
     };
 
-    await this.notificationService.createNotification(notificationPayload);
+    await this.notificationService.createNotification(notificationPayload, res);
 
     return res.status(200).json('Event created successfully');
   }

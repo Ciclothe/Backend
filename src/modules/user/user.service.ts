@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import {
@@ -13,7 +13,7 @@ import { compare, hash } from 'bcryptjs';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async getUserName(req: Request) {
+  async getUserName(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -32,10 +32,10 @@ export class UserService {
     });
 
     // Send user info to client
-    return userInfo;
+    return res.status(200).json(userInfo);
   }
 
-  async userInfo(req: Request) {
+  async userInfo(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -55,11 +55,12 @@ export class UserService {
     });
 
     // Send user info to client
-    return userInfo;
+    return res.status(200).json(userInfo);
   }
 
   async updateUserInfo(
     req: Request,
+    res: Response,
     infoToUpdate: ChangeDto,
     profilePhoto: Express.Multer.File,
   ) {
@@ -78,11 +79,12 @@ export class UserService {
       },
     });
 
-    return findUser;
+    return res.status(200).json(findUser);
   }
 
   async updateSesitiveUserInfo(
     req: Request,
+    res: Response,
     infoToUpdate: ChangeSensitiveInformationDto,
   ) {
     //Retrive user id from token
@@ -106,7 +108,6 @@ export class UserService {
       infoToUpdate.password,
       findUser.password,
     );
-    console.log(validatePassword);
 
     //Validate if they are the same password
     if (!validatePassword) {
@@ -138,10 +139,10 @@ export class UserService {
       },
     });
 
-    return updateUser;
+    return res.status(200).json(updateUser);
   }
 
-  async rating(req: Request, qualifiedUserId: string, rating: number) {
+  async rating(req: Request, res: Response, qualifiedUserId: string, rating: number) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 
@@ -178,6 +179,6 @@ export class UserService {
       },
     });
 
-    return newCalification;
+    return res.status(200).json(newCalification);
   }
 }

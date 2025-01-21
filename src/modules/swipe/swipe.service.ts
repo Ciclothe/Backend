@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from '../user/dto/user.dto';
@@ -8,7 +8,7 @@ import { DecodeDto } from '../user/dto/user.dto';
 export class SwipeService {
   constructor(private prisma: PrismaService) {}
 
-  async swipe(req: Request) {
+  async swipe(req: Request, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -24,7 +24,7 @@ export class SwipeService {
     });
 
     //Retrieve all posts that the user has not slipped
-    return await this.prisma.posts.findMany({
+    const post = await this.prisma.posts.findMany({
       where: {
         NOT: {
           id: {
@@ -46,9 +46,11 @@ export class SwipeService {
         tags: true,
       },
     });
+
+    return res.status(200).json(post);
   }
 
-  async swipeReaction(req: Request, postId: string, reaction: boolean) {
+  async swipeReaction(req: Request, postId: string, reaction: boolean, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -61,6 +63,6 @@ export class SwipeService {
       },
     });
 
-    return true;
+    return res.status(200).json({ message: 'Reaction saved' });
   }
 }

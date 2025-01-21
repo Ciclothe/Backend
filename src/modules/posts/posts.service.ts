@@ -231,7 +231,7 @@ export class PostsService {
         relatedPostId: postId,
       };
 
-      await this.notificationService.createNotification(notificationPayload);
+      await this.notificationService.createNotification(notificationPayload, res);
     }
 
     return res.status(HttpStatus.OK).json(true);
@@ -317,7 +317,7 @@ export class PostsService {
       content: NotificationType.COMMENT,
     };
 
-    await this.notificationService.createNotification(notificationPayload);
+    await this.notificationService.createNotification(notificationPayload, res);
 
     return res.status(HttpStatus.CREATED).json(createdComment);
   }

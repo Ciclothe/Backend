@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
@@ -14,7 +14,7 @@ export class SwapService {
     private notificationService: NotificationsService,
   ) {}
 
-  async swapOptions(req: Request) {
+  async swapOptions(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -25,10 +25,10 @@ export class SwapService {
       },
     });
 
-    return post;
+    return res.status(200).json(post);
   }
 
-  async swapOffer(desiredSwapId: string, offeredSwapIds: string[]) {
+  async swapOffer(desiredSwapId: string, offeredSwapIds: string[], res: Response) {
     let desiredPost, offeredPost;
     for (const offeredId of offeredSwapIds) {
       desiredPost = await this.prisma.posts.findUnique({
@@ -62,12 +62,12 @@ export class SwapService {
       relatedPostId: desiredPost.id,
     };
 
-    await this.notificationService.createNotification(notificationPayload);
+    await this.notificationService.createNotification(notificationPayload, res);
 
-    return true;
+    return res.status(200).json('Swap offer sent');
   }
 
-  async swapOfferResponse(userRes: userResponse, swapId: string) {
+  async swapOfferResponse(userRes: userResponse, swapId: string, res: Response) {
     const swapState =
       userRes == 'accept'
         ? 'reserved'
@@ -104,9 +104,16 @@ export class SwapService {
             ? 'Your exchange request has been rejected'
             : '';
 
-    // this.notificationGateway.handleSendNotification({
-    //   userId: userId.offeredUserId,
-    //   content: notificationMessage,
-    // });
+    // create the notification payload
+    const notificationPayload: NotificationPayload = {
+      userId: userId.offeredUserId,
+      fromUserId: userId.offeredUserId,
+      type: 'swap',
+      content: notificationMessage,
+    };
+
+    await this.notificationService.createNotification(notificationPayload, res);
+
+    return res.status(200).json('Swap offer response sent');
   }
 }

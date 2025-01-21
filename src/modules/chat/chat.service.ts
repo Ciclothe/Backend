@@ -82,7 +82,7 @@ export class ChatService {
     });
   }
 
-  async findOrCreateChatRoom(senderId: string, recipientId: string, res: Response) {
+  async findOrCreateChatRoom(senderId: string, recipientId: string) {
     let chatRoom = await this.prisma.chatRoom.findFirst({
       where: {
         OR: [
@@ -101,7 +101,7 @@ export class ChatService {
       });
     }
 
-    return res.status(200).json(chatRoom);
+    return chatRoom;
   }
 
   async createMessage(content: string, sendById: string, chatRoomId: string, img?: string) {
