@@ -12,7 +12,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   registerUser(
     @Body() user: UserRegisterDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ) {
     return this.authService.registerUser(user, res);
   }
@@ -21,14 +21,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Login user' })
   loginUser(
     @Body() user: UserLoginDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ) {
     return this.authService.loginUser(user, res);
   }
 
   @Get()
   @ApiOperation({ summary: 'Logout user' })
-  logoutUser(@Res({ passthrough: true }) res: Response) {
+  logoutUser(@Res() res: Response) {
     return this.authService.logoutUser(res);
   }
 

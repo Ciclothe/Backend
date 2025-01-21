@@ -69,14 +69,7 @@ export class AuthService {
       httpOnly: true,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'User registered successfully',
-      user: {
-        id: newUser.id,
-        name: newUser.userName,
-      },
-    });
+    return res.status(200).json("User created successfully");
   }
 
   async loginUser(user: UserLoginDto, res: Response) {
