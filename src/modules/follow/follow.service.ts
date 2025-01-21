@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from '../user/dto/user.dto';
@@ -10,7 +10,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 export class FollowService {
   constructor(private prisma: PrismaService, private notificationService: NotificationsService) {}
 
-  async newFollow(userName: string, req: Request) {
+  async newFollow(userName: string, req: Request, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
@@ -53,12 +53,12 @@ export class FollowService {
       content: NotificationType.FOLLOW,
     };
 
-    await this.notificationService.createNotification(notificationPayload);
+    await this.notificationService.createNotification(notificationPayload, res);
 
-    return true;
+    return res.status(200).json({ message: 'Followed' });
   }
 
-  async stopFollowing(userName: string, req: Request) {
+  async stopFollowing(userName: string, req: Request, res: Response) {
     //Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
@@ -89,13 +89,13 @@ export class FollowService {
         },
       });
 
-      return true;
+      return res.status(200).json({ message: 'Unfollowed' });
     } else {
-      return false;
+      return res.status(400).json({ message: 'You dont follow this user' });
     }
   }
 
-  async followers(userName: string) {
+  async followers(userName: string, res: Response) {
     // Retrieve user id from db
     const userId = await this.prisma.users.findFirst({
       where: {
@@ -121,7 +121,6 @@ export class FollowService {
       },
     });
 
-    console.log(followersId);
     const followers = await this.prisma.users.findMany({
       where: {
         id: {
@@ -133,10 +132,10 @@ export class FollowService {
       },
     });
 
-    return followers;
+    return res.status(200).json(followers);
   }
 
-  async followed(userName: string) {
+  async followed(userName: string, res: Response) {
     // Retrieve user id from db
     const userId = await this.prisma.users.findFirst({
       where: {
@@ -173,6 +172,6 @@ export class FollowService {
       },
     });
 
-    return followed;
+    return res.status(200).json(followed);
   }
 }

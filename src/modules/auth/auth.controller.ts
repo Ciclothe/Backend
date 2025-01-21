@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserRegisterDto } from './dto/auth.dto';
+import { UserLoginDto, UserRegisterDto } from './dto/auth.dto';
 import { Request, Response } from 'express';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 
@@ -12,7 +12,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   registerUser(
     @Body() user: UserRegisterDto,
-    @Res({ passthrough: true }) res: Response,
+    @Res() res: Response,
   ) {
     return this.authService.registerUser(user, res);
   }
@@ -20,15 +20,15 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   loginUser(
-    @Body() user: UserRegisterDto,
-    @Res({ passthrough: true }) res: Response,
+    @Body() user: UserLoginDto,
+    @Res() res: Response,
   ) {
     return this.authService.loginUser(user, res);
   }
 
   @Get()
   @ApiOperation({ summary: 'Logout user' })
-  logoutUser(@Res({ passthrough: true }) res: Response) {
+  logoutUser(@Res() res: Response) {
     return this.authService.logoutUser(res);
   }
 
@@ -65,8 +65,8 @@ export class AuthController {
       },
     },
   })
-  changePassword(@Body() { password, confirmPassword, token }) {
-    return this.authService.changePassword(password, confirmPassword, token);
+  changePassword(@Body() { password, confirmPassword, token }, @Res() res: Response) {
+    return this.authService.changePassword(password, confirmPassword, token, res);
   }
 
   @Delete()

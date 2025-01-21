@@ -5,7 +5,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from '../user/dto/user.dto';
 
@@ -33,12 +33,12 @@ export class CommunitiesService {
             profilePicture: true,
           },
         },
-        publications: true,
+        posts: true,
       },
     });
   }
 
-  async createNewCommunity(community: CommunitiesDto, req: Request) {
+  async createNewCommunity(community: CommunitiesDto, req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -52,7 +52,7 @@ export class CommunitiesService {
     }
 
     // Create new community
-    return this.prisma.communities.create({
+    const newCommunity = await this.prisma.communities.create({
       data: {
         name: community.name,
         description: community.description,
@@ -61,9 +61,11 @@ export class CommunitiesService {
         photo: community.photo,
       },
     });
+
+    return res.status(201).json(newCommunity);
   }
 
-  async editCommunity(id: string, community: CommunitiesDto) {
+  async editCommunity(id: string, community: CommunitiesDto, res: Response) {
    
     //Check if community exists
     const existingCommunity = await this.prisma.communities.findUnique({
@@ -74,7 +76,7 @@ export class CommunitiesService {
     }
 
     //Update community
-    return await this.prisma.communities.update({
+    const communityEdited = await this.prisma.communities.update({
       where: { id },
       data: {
         name: community.name,
@@ -83,6 +85,8 @@ export class CommunitiesService {
         photo: community.photo,
       },
     });
+
+    return res.status(200).json(communityEdited);
   }
 
   async deleteCommunity(id: string) {

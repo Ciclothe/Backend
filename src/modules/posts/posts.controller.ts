@@ -7,25 +7,14 @@ import {
   Patch,
   Post,
   Req,
-  UploadedFiles,
+  Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { EditPublicationDto, PostDetailsDto } from './dto/posts.dto';
-import { Request } from 'express';
+import { EditPostDto, PostDetailsDto } from './dto/posts.dto';
+import { Request, Response } from 'express';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import * as path from 'path';
-import { Publication } from './types/post';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOperation } from '@nestjs/swagger';
 
 @Controller('posts')
 export class PostsController {
@@ -33,51 +22,31 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Get publication posts' })
-  publicationPosts(@Param('id') id: string) {
-    return this.postService.getPublicationById(id);
+  @ApiOperation({ summary: 'Get post by id' })
+  getPostById(@Param('id') id: string) {
+    return this.postService.getPostById(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a post' })
   @Post()
-  createPost(
-    @Body()
-    postDetails: PostDetailsDto,
+  async createPost(
+    @Body() postDetails: PostDetailsDto,
     @Req() req: Request,
+    @Res() res: Response,
   ) {
-    const categories: string[] = [
-      postDetails.categories.genre,
-      postDetails.categories.type,
-      postDetails.categories.category,
-    ];
-
-    const publication: Publication = {
-      title: postDetails.description.title,
-      categories,
-      address: postDetails.description.location.address,
-      postalCode: postDetails.description.location.postalCode,
-      currentCondition: postDetails.condition,
-      description: postDetails.description.description,
-      gender: postDetails.description.gender,
-      brand: postDetails.description.brand,
-      primary_color: postDetails.description.color.name,
-      size: postDetails.description.size,
-      tags: postDetails.description.tags,
-      usageTime: postDetails.description.usageTime,
-      media: postDetails.media.map((img) => img.base64),
-      orientation: postDetails.orientation,
-      type: postDetails.type,
-    };
-
-    return this.postService.createPost(publication, req);
+    return this.postService.createPost(postDetails, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch()
   @ApiOperation({ summary: 'Edit post' })
-  editPost(@Body() publication: EditPublicationDto, @Req() req: Request) {
-    return this.postService.updatePost(publication, req);
+  editPost(
+    @Body() post: EditPostDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.postService.updatePost(post, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -86,14 +55,15 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
   deletePost(
-    @Body('publicationId') publicationId: string,
+    @Body('postId') postId: string,
     @Req() req: Request,
+    @Res() res: Response,
   ) {
-    return this.postService.deletePublication(publicationId, req);
+    return this.postService.deletePost(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -101,15 +71,16 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
   @ApiOperation({ summary: 'Add a like to a post' })
   updateLikes(
     @Req() req: Request,
-    @Body('publicationId') publicationId: string,
+    @Body('postId') postId: string,
+    @Res() res: Response,
   ) {
-    return this.postService.updateLikes(publicationId, req);
+    return this.postService.updateLikes(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -118,37 +89,28 @@ export class PostsController {
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
-  addView(@Req() req: Request, @Body() publicationId: string) {
-    return this.postService.addView(publicationId, req);
+  addView(@Req() req: Request, @Body() postId: string) {
+    return this.postService.addView(postId, req);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('save')
-  @ApiOperation({ summary: 'Save a publication' })
+  @ApiOperation({ summary: 'Save or unsave a post' })
   @ApiBody({
     schema: {
       type: 'object',
-      properties: { publicationId: { type: 'string' } },
+      properties: { postId: { type: 'string' } },
     },
   })
-  savePublication(@Req() req: Request, @Body() publicationId: string) {
-    return this.postService.savePublication(publicationId, req);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Delete('save')
-  @ApiOperation({ summary: 'Unsave a publication' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: { publicationId: { type: 'string' } },
-    },
-  })
-  unsavePublication(@Req() req: Request, @Body() publicationId: string) {
-    return this.postService.unsavePublication(publicationId, req);
+  saveOrUnsavePost(
+    @Req() req: Request,
+    @Body() postId: string,
+    @Res() res: Response,
+  ) {
+    return this.postService.saveOrUnsavePost(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -158,17 +120,18 @@ export class PostsController {
     schema: {
       type: 'object',
       properties: {
-        publicationId: { type: 'string' },
+        postId: { type: 'string' },
         comment: { type: 'string' },
       },
     },
   })
   addComment(
     @Req() req: Request,
-    @Body('publicationId') publicationId: string,
+    @Body('postId') postId: string,
     @Body('comment') comment: string,
+    @Res() res: Response,
   ) {
-    return this.postService.addComment(publicationId, comment, req);
+    return this.postService.addComment(postId, comment, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -177,7 +140,11 @@ export class PostsController {
   @ApiBody({
     schema: { type: 'object', properties: { commentId: { type: 'string' } } },
   })
-  deleteComment(@Req() req: Request, @Body() commentId: string) {
-    return this.postService.deleteComment(commentId, req);
+  deleteComment(
+    @Req() req: Request,
+    @Body() commentId: string,
+    @Res() res: Response,
+  ) {
+    return this.postService.deleteComment(commentId, req, res);
   }
 }

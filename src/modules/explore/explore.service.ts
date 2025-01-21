@@ -7,7 +7,7 @@ import {
 } from '../feed/dto/feed.dto';
 import { DecodeDto } from '../user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { postClasification } from 'src/shared/utils/postClasification';
 import { ParamsCategoryDto } from './dto/explore.dto';
 import { ParamsInterface } from './types/explore';
@@ -16,141 +16,84 @@ import { ParamsInterface } from './types/explore';
 export class ExploreService {
   constructor(private prisma: PrismaService) {}
 
-  //TODO: refactor this function
-  async explore(req: Request) {
-    //Retrieve user id from token
+  async explore(req: Request, res: Response) {
+    // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    //Search the publications and save the id and the category
-    const publications: PublicationsDto[] =
-      await this.prisma.publications.findMany({
-        where: {
-          NOT: {
-            createdById: decodeToken.id,
+    // Fetch all posts excluding the ones created by the user
+    const allPosts = await this.prisma.posts.findMany({
+      where: {
+        NOT: {
+          createdById: decodeToken.id,
+        },
+      },
+      include: {
+        tags: true,
+        categories: true,
+        image: true,
+        likes: true,
+        createdBy: {
+          select: {
+            id: true,
+            userName: true,
+            profilePicture: true,
+            qualification: true,
           },
         },
-        select: {
-          id: true,
-          categories: true,
+        _count: {
+          select: {
+            views: true,
+          },
         },
-      });
-    //Search the user and save his likes
-    const user = await this.prisma.users.findUnique({
-      where: {
-        id: decodeToken.id,
-      },
-      select: {
-        likes: true,
       },
     });
 
+    // Fetch user data including likes
+    const user = await this.prisma.users.findUnique({
+      where: { id: decodeToken.id },
+      select: { likes: true },
+    });
+
     if (user.likes.length >= 1) {
-      const userLikes = user.likes as UserPublicationDto[];
-
+      // Extract liked posts' categories concurrently
       const categories: CategoriesDto[] = [];
+      await Promise.all(
+        user.likes.map(async (like) => {
+          const post = await this.prisma.posts.findUnique({
+            where: { id: like.postId },
+            select: { categories: true },
+          });
+          if (post) {
+            categories.push(...post.categories);
+          }
+        }),
+      );
 
-      //Search all the publications liked by the user, and save the categories
-      for (let i = 0; i < userLikes.length; i++) {
-        const publicationsCategories = await this.prisma.publications.findMany({
-          where: {
-            id: userLikes[i].publicationId,
-          },
-          select: {
-            categories: true,
-          },
-        });
+      // Classify posts based on user preferences
+      const postSelected = postClasification(categories, allPosts);
 
-        categories.push(...publicationsCategories[0].categories);
-      }
+      // Organize posts based on the algorithm's result
+      const postsOrdered = postSelected
+        .map((id) => allPosts.find((post) => post.id === id))
+        .filter((post) => post);
 
-      const postSelected = postClasification(categories, publications);
-
-      const posts = await this.prisma.publications.findMany({
-        where: {
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-        include: {
-          tags: true,
-          categories: true,
-          image: true,
-          likes: true,
-          createdBy: {
-            select: {
-              id: true,
-              userName: true,
-              profilePicture: true,
-              qualification: true,
-            },
-          },
-          _count: {
-            select: {
-              views: true,
-            },
-          },
-        },
-      });
-
-      const postsOrdered: any[] = [];
-
-      //Organize posts depending on the algorithm result
-      postSelected.forEach((id) => {
-        const post = posts.find((post) => post.id === id);
-
-        if (post) {
-          postsOrdered.push(post);
-        }
-      });
-
-      return postsOrdered;
+      return res.status(200).json(postsOrdered);
     } else {
-      const posts = await this.prisma.publications.findMany({
-        where: {
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-        include: {
-          tags: true,
-          categories: true,
-          image: true,
-          likes: true,
-          createdBy: {
-            select: {
-              id: true,
-              userName: true,
-              profilePicture: true,
-              qualification: true,
-            },
-          },
-          _count: {
-            select: {
-              views: true,
-            },
-          },
-        },
-      });
-
-      posts.sort((a, b) => b.likes.length - a.likes.length);
-
-      return posts;
+      // If no likes, order posts by the number of likes
+      allPosts.sort((a, b) => b.likes.length - a.likes.length);
+      return res.status(200).json(allPosts);
     }
   }
 
-  //TODO: refactor this function
-  async categorizedPublications(
-    req: Request,
-    categoriesParam: ParamsCategoryDto,
-  ) {
-    //Retrieve user id from token
+  async categorizedPosts(req: Request, categoriesParam: ParamsCategoryDto, res: Response) {
+    // Decode user ID from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-
     const { category, subcategory } = categoriesParam;
 
-    const publications = await this.prisma.publications.findMany({
+    // Fetch posts that match the categories and exclude those created by the user
+    const posts = await this.prisma.posts.findMany({
       where: {
         categories: {
           some: {
@@ -167,37 +110,43 @@ export class ExploreService {
       },
     });
 
-    //Search the user and save his reactions
-    const user = await this.prisma.users.findMany({
-      where: {
-        id: decodeToken.id,
-      },
+    // Fetch user likes and extract liked post IDs
+    const userLikes = await this.prisma.users.findUnique({
+      where: { id: decodeToken.id },
       select: {
-        likes: true,
+        likes: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
-    const userReactions = user[0].likes as UserPublicationDto[];
+    const userLikedIds = userLikes?.likes.map((like) => like.id) || [];
 
-    const categories: CategoriesDto[] = [];
+    // Fetch categories of liked posts in a single query
+    const likedCategories = await this.prisma.posts.findMany({
+      where: {
+        id: { in: userLikedIds },
+      },
+      select: {
+        categories: true,
+      },
+    });
 
-    //Search all the publications liked by the user, and save the categories
-    for (let i = 0; i < userReactions.length; i++) {
-      const publicationsCategories = await this.prisma.publications.findMany({
-        where: {
-          id: userReactions[i].id,
-        },
-        select: {
-          categories: true,
-        },
-      });
+    // Flatten and deduplicate liked categories
+    const categories = likedCategories
+      .flatMap((post) => post.categories)
+      .filter(
+        (category, index, self) =>
+          index === self.findIndex((c) => c.id === category.id),
+      );
 
-      categories.push(...publicationsCategories[0].categories);
-    }
+    // Classify posts using the custom classification function
+    const postSelected = postClasification(categories, posts);
 
-    const postSelected = postClasification(categories, publications);
-
-    const posts = await this.prisma.publications.findMany({
+    // Fetch all posts excluding those created by the user, with necessary details
+    const detailedPosts = await this.prisma.posts.findMany({
       where: {
         NOT: {
           createdById: decodeToken.id,
@@ -223,81 +172,45 @@ export class ExploreService {
       },
     });
 
-    const postsOrdered: any[] = [];
+    // Organize posts based on classification results
+    const postsOrdered = postSelected
+      .map((id) => detailedPosts.find((post) => post.id === id))
+      .filter(Boolean); // Remove undefined results
 
-    //Organize posts depending on the algorithm result
-    postSelected.forEach((id) => {
-      const post = posts.find((post) => post.id === id);
-
-      if (post) {
-        postsOrdered.push(post);
-      }
-    });
-
-    return postsOrdered;
+    return res.status(200).json(postsOrdered);
   }
 
-  //TODO: refactor this function
-  async filteredPublications(parameters: ParamsInterface, req: Request) {
+  async filteredPosts(parameters: ParamsInterface, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
-    if (parameters.filterName === 'date') {
-      return await this.prisma.publications.findMany({
-        where: {
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-        orderBy: {
-          publicatedAt: 'desc',
-        },
-      });
-    } else if (parameters.filterName === 'state') {
-      return await this.prisma.publications.findMany({
-        where: {
-          current_condition: parameters.filter,
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-      });
-    } else if (parameters.filterName == 'gender') {
-      return await this.prisma.publications.findMany({
-        where: {
-          gender: parameters.filter,
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-      });
-    } else if (parameters.filterName == 'color') {
-      return await this.prisma.publications.findMany({
-        where: {
-          primary_color: parameters.filter,
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-      });
-    } else if (parameters.filterName == 'size') {
-      return await this.prisma.publications.findMany({
-        where: {
-          size: parameters.filter,
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-      });
-    } else if (parameters.filterName == 'brand') {
-      return await this.prisma.publications.findMany({
-        where: {
-          brand: parameters.filter,
-          NOT: {
-            createdById: decodeToken.id,
-          },
-        },
-      });
+    // Base where clause (exclude posts created by the user)
+    const baseWhere = {
+      NOT: {
+        createdById: decodeToken.id,
+      },
+    };
+
+    // Dynamic filter conditions
+    const filterConditions: Record<string, any> = {
+      date: { orderBy: { publicatedAt: 'desc' } },
+      state: { where: { current_condition: parameters.filter, ...baseWhere } },
+      gender: { where: { gender: parameters.filter, ...baseWhere } },
+      color: { where: { primary_color: parameters.filter, ...baseWhere } },
+      size: { where: { size: parameters.filter, ...baseWhere } },
+      brand: { where: { brand: parameters.filter, ...baseWhere } },
+    };
+
+    // Select the appropriate filter condition
+    const filterCondition = filterConditions[parameters.filterName];
+
+    if (!filterCondition) {
+      throw new Error(`Invalid filter name: ${parameters.filterName}`);
     }
+
+    // Perform the query with the selected filter condition
+    const filteredPost = await this.prisma.posts.findMany(filterCondition);
+
+    return res.status(200).json(filteredPost);
   }
 }

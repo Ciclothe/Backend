@@ -17,7 +17,7 @@ import {
 import { CommunitiesService } from './communities.service';
 import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
 import { CommunitiesDto } from './dto/communities.dto';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Controller('communities')
@@ -34,16 +34,24 @@ export class CommunitiesController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new community' })
-  createNewCommunity(@Body() community: CommunitiesDto, @Req() req: Request) {
-    return this.communitiesService.createNewCommunity(community, req);
+  createNewCommunity(
+    @Body() community: CommunitiesDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.communitiesService.createNewCommunity(community, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Edit an existing community' })
   @ApiParam({ name: 'id', type: 'string' })
-  editCommunity(@Param('id') id: string, @Body() community: CommunitiesDto) {
-    return this.communitiesService.editCommunity(id, community);
+  editCommunity(
+    @Param('id') id: string,
+    @Body() community: CommunitiesDto,
+    @Res() res: Response,
+  ) {
+    return this.communitiesService.editCommunity(id, community, res);
   }
 
   @UseGuards(JwtAuthGuard)
