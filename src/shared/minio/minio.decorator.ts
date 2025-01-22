@@ -1,3 +1,7 @@
-import { SetMetadata } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 
-export const Minio = (...args: string[]) => SetMetadata('minio', args);
+export const MINIO_TOKEN = 'MINIO_INJECT_TOKEN';
+
+export function InjectMinio(): ParameterDecorator {
+  return Inject(MINIO_TOKEN);
+}
