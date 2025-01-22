@@ -8,10 +8,16 @@ import {
   DecodeDto,
 } from './dto/user.dto';
 import { compare, hash } from 'bcryptjs';
+import { InjectMinio } from 'src/shared/minio/minio.decorator';
+import * as Minio from 'minio';
+import { env } from 'process';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectMinio() private readonly minioService: Minio.Client,
+  ) {}
 
   async getUserName(req: Request, res: Response) {
     // Retrieve user id from token
@@ -64,22 +70,42 @@ export class UserService {
     infoToUpdate: ChangeDto,
     profilePhoto: Express.Multer.File,
   ) {
-    //Retrive user id from token
+    // Retrieve the user ID from the token
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 
-    //Update user information
-    const findUser = await this.prisma.users.updateMany({
+    const updateData: any = { ...infoToUpdate };
+
+    if (profilePhoto) {
+      // Generate a unique file name for the profile photo
+      const fileName = `${Date.now()}_${profilePhoto.originalname}`;
+
+      // Upload the profile photo to MinIO
+      await this.minioService.putObject(
+        env.MINIO_BUCKET,
+        fileName,
+        profilePhoto.buffer,
+        profilePhoto.size,
+        { 'Content-Type': profilePhoto.mimetype },
+      );
+
+      // Generate the URL for the uploaded profile photo
+      const profilePhotoUrl = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/your-bucket-name/${fileName}`;
+      updateData.profilePicture = profilePhotoUrl;
+    }
+
+    // Update the user's information in the database
+    const updatedUser = await this.prisma.users.update({
       where: {
         id: decodedToken.id,
       },
-      data: {
-        userName: infoToUpdate.name,
-        profilePicture: profilePhoto.originalname,
-      },
+      data: updateData,
     });
 
-    return res.status(200).json(findUser);
+    return res.status(200).json({
+      message: 'User information updated successfully.',
+      user: updatedUser,
+    });
   }
 
   async updateSesitiveUserInfo(
@@ -142,7 +168,12 @@ export class UserService {
     return res.status(200).json(updateUser);
   }
 
-  async rating(req: Request, res: Response, qualifiedUserId: string, rating: number) {
+  async rating(
+    req: Request,
+    res: Response,
+    qualifiedUserId: string,
+    rating: number,
+  ) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 

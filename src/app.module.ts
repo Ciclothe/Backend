@@ -15,6 +15,7 @@ import { EventsModule } from './modules/events/events.module';
 import { ExploreModule } from './modules/explore/explore.module';
 import { SwipeModule } from './modules/swipe/swipe.module';
 import { FeedModule } from './modules/feed/feed.module';
+import { MinioModule } from './shared/minio/minio.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { FeedModule } from './modules/feed/feed.module';
     EventsModule,
     ExploreModule,
     SwipeModule,
+    MinioModule,
   ],
   controllers: [],
   providers: [JwtStrategy],
