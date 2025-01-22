@@ -116,7 +116,7 @@ CREATE TABLE `Posts` (
 -- CreateTable
 CREATE TABLE `Image` (
     `id` VARCHAR(191) NOT NULL,
-    `base64` LONGTEXT NOT NULL,
+    `url` VARCHAR(191) NOT NULL,
     `orientation` VARCHAR(191) NOT NULL,
     `postId` VARCHAR(191) NOT NULL,
 

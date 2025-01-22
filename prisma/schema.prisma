@@ -157,7 +157,7 @@ model Posts {
 
 model Image {
   id            String @id @default(uuid())
-  base64        String @db.LongText
+  url           String
   orientation   String
   postId String
   post          Posts  @relation(fields: [postId], references: [id])

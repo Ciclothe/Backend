@@ -10,12 +10,17 @@ import {
   NotificationPayload,
   NotificationType,
 } from '../notifications/types/notifications';
+import { InjectMinio } from 'src/shared/minio/minio.decorator';
+import * as Minio from 'minio';
+import { env } from 'process';
+
 
 @Injectable()
 export class PostsService {
   constructor(
     private prisma: PrismaService,
     private notificationService: NotificationsService,
+    @InjectMinio() private readonly minioService: Minio.Client
   ) {}
 
   async getPostById(id: string) {
@@ -61,13 +66,13 @@ export class PostsService {
   async createPost(postDetails: PostDetailsDto, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-
+  
     // Geocoding for address and postal code
     const geocoding = await ltdAndLong(
       postDetails.description.location.address,
       postDetails.description.location.postalCode,
     );
-
+  
     // Create a new post
     const newPost = await this.prisma.posts.create({
       data: {
@@ -103,20 +108,38 @@ export class PostsService {
         image: true,
       },
     });
-
-    // Save media images
+  
+    // Save media images in MinIO and store metadata in DB
     for (const img of postDetails.media) {
+      // Generate a unique file name
+      const fileName = `${crypto.randomUUID()}.jpg`;
+  
+      // Decode base64 image
+      const buffer = Buffer.from(img.base64, 'base64');
+  
+      // Upload the file to MinIO
+      await this.minioService.putObject(
+        env.MINIO_BUCKET,
+        fileName, 
+        buffer, 
+        buffer.byteLength, 
+        { 'Content-Type': 'image/jpeg' }, 
+      );
+      
+  
+      // Store image metadata in the database
       await this.prisma.image.create({
         data: {
-          base64: img.base64,
+          url: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/your-bucket-name/${fileName}`,
           postId: newPost.id,
           orientation: postDetails.orientation,
         },
       });
     }
-
+  
     return res.status(HttpStatus.CREATED).json(newPost);
   }
+  
 
   async updatePost(post: EditPostDto, req: Request, res: Response) {
     //Retrieve user id from token
