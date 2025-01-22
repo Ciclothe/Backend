@@ -10,6 +10,7 @@ services:
       DATABASE_URL: mysql://user:pass@db:3306/db
     depends_on:
       - db
+      - minio
 
   db:
     image: mysql:8.0
@@ -25,5 +26,20 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  minio:
+    image: minio/minio
+    container_name: ciclothe_minio
+    restart: always
+    ports:
+      - "9000:9000" 
+      - "9001:9001" 
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
 volumes:
   db_data:
+  minio-data:
