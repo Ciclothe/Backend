@@ -10,25 +10,27 @@ import { PrismaExceptionFilter } from './shared/filters/prisma.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: true,
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.use(cookieParser());
-  app.use(express.json({ limit: '100mb' }));
-  app.use(express.urlencoded({ limit: '50mb', extended: true }));
-  app.use('/uploads', express.static(join(__dirname, '..', '..', 'uploads')));
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-  const config = new DocumentBuilder()
-    .setTitle('Ciclothe')
-    .setDescription('The Ciclothe API description')
-    .setVersion('Beta')
-    .addTag('Ciclothe')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  if (process.env.RAILWAY_ENVIRONMENT_NAME !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Ciclothe')
+      .setDescription('The Ciclothe API description')
+      .setVersion('Beta')
+      .addTag('Ciclothe')
+      .build();
+    const documentFactory = () => SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, documentFactory);
+  }
+  
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
