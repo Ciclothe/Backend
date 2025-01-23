@@ -1,227 +1,239 @@
 import { HttpException, Injectable, HttpStatus } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { PublicationDto, EditPublicationDto } from './dto/posts.dto';
-import { Request } from 'express';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { EditPostDto, PostDetailsDto } from './dto/posts.dto';
+import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import * as path from 'path';
+import { ltdAndLong } from 'src/shared/utils/geocoding/geocoding';
+import { NotificationsService } from '../notifications/notifications.service';
+import {
+  NotificationPayload,
+  NotificationType,
+} from '../notifications/types/notifications';
+import { InjectMinio } from 'src/shared/minio/minio.decorator';
+import * as Minio from 'minio';
+import { env } from 'process';
+
 
 @Injectable()
 export class PostsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationsService,
+    @InjectMinio() private readonly minioService: Minio.Client
+  ) {}
 
-  async createPost(publication: PublicationDto, req: Request) {
-    try {
-      const token = req.headers.authorization.split(' ')[1];
-      const decodeToken = jwt.decode(token) as DecodeDto;
+  async getPostById(id: string) {
+    return await this.prisma.posts.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        tags: true,
+        categories: true,
+        image: true,
+        likes: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                userName: true,
+                profilePicture: true,
+              },
+            },
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            userName: true,
+            profilePicture: true,
+            qualification: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            savedPost: true,
+          },
+        },
+      },
+    });
+  }
 
-      const newPublication = await this.prisma.publications.create({
+  async createPost(postDetails: PostDetailsDto, req: Request, res: Response) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+  
+    // Geocoding for address and postal code
+    const geocoding = await ltdAndLong(
+      postDetails.description.location.address,
+      postDetails.description.location.postalCode,
+    );
+  
+    // Create a new post
+    const newPost = await this.prisma.posts.create({
+      data: {
+        title: postDetails.description.title,
+        description: postDetails.description.description,
+        latitude: geocoding.lat,
+        longitude: geocoding.lng,
+        brand: postDetails.description.brand,
+        size: postDetails.description.size,
+        primary_color: postDetails.description.color.name,
+        gender: postDetails.description.gender,
+        current_condition: postDetails.condition,
+        createdById: decodeToken.id,
+        type: postDetails.type,
+        categories: {
+          connectOrCreate: [
+            postDetails.categories.genre,
+            postDetails.categories.type,
+            postDetails.categories.category,
+          ].map((category) => ({
+            where: { name: category },
+            create: { name: category },
+          })),
+        },
+        tags: {
+          connectOrCreate: postDetails.description.tags.map((tag) => ({
+            where: { name: tag },
+            create: { name: tag },
+          })),
+        },
+      },
+      include: {
+        image: true,
+      },
+    });
+  
+    // Save media images in MinIO and store metadata in DB
+    for (const img of postDetails.media) {
+      // Generate a unique file name
+      const fileName = `${crypto.randomUUID()}.jpg`;
+  
+      // Decode base64 image
+      const buffer = Buffer.from(img.base64, 'base64');
+  
+      // Upload the file to MinIO
+      await this.minioService.putObject(
+        env.MINIO_BUCKET,
+        fileName, 
+        buffer, 
+        buffer.byteLength, 
+        { 'Content-Type': 'image/jpeg' }, 
+      );
+      
+  
+      // Store image metadata in the database
+      await this.prisma.image.create({
         data: {
-          title: publication.title,
-          description: publication.description,
-          country: publication.country,
-          city: publication.city,
-          brand: publication.brand,
-          usage_time: publication.usageTime,
-          size: publication.size,
-          primary_color: publication.primary_color,
-          gender: publication.gender,
-          current_condition: publication.currentCondition,
-          createdById: decodeToken.id,
-          categories: {
-            connectOrCreate: publication.categories.map((category) => ({
-              where: { name: category },
-              create: { name: category },
-            })),
-          },
-          tags: {
-            connectOrCreate: publication.tags.map((tag) => ({
-              where: { name: tag },
-              create: { name: tag },
-            })),
-          },
-        },
-        include: {
-          image: true,
+          url: `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/your-bucket-name/${fileName}`,
+          postId: newPost.id,
+          orientation: postDetails.orientation,
         },
       });
-
-      for (const img of publication.media) {
-        await this.prisma.image.create({
-          data: {
-            base64: img,
-            publicationId: newPublication.id,
-          },
-        });
-      }
-
-      console.log('Post published successfully');
-      return 'Post published successfully';
-    } catch (e) {
-      console.error('Error in createPost:', e);
-
-      if (e.name === 'PrismaClientKnownRequestError') {
-        // Prisma error
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            error: 'Prisma error occurred',
-            message: e.message,
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      } else if (e.response && e.response.status) {
-        // Error from HttpException
-        throw new HttpException(e.response.message, e.response.status);
-      } else {
-        // Internal Server Error
-        throw new HttpException(
-          {
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            error: 'Internal Server Error',
-            message: e.message,
-          },
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
     }
+  
+    return res.status(HttpStatus.CREATED).json(newPost);
+  }
+  
+
+  async updatePost(post: EditPostDto, req: Request, res: Response) {
+    //Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    if (post.address) {
+      const geocoding = await ltdAndLong(
+        post.address,
+        post.postalCode,
+      );
+
+      post.longitude = geocoding.lng;
+      post.latitude = geocoding.lat;
+    }
+
+    //Update post whit the new information provided
+    await this.prisma.posts.updateMany({
+      where: {
+        id: post.id,
+        createdById: decodeToken.id,
+      },
+      data: {
+        title: post.title,
+        description: post.description,
+        latitude: post.latitude,
+        longitude: post.longitude,
+        current_condition: post.currentCondition,
+        reserved: post.reserved,
+      },
+    });
+
+    return res.status(HttpStatus.OK).json('Post updated successfully');
   }
 
-  async updatePost(publication: EditPublicationDto, req: Request) {
-    try {
-      //Retrieve user id from token
-      const token = req.headers.authorization.split(' ')[1];
-      const decodeToken = jwt.decode(token) as DecodeDto;
+  async deletePost(postId: string, req: Request, res: Response) {
+    //Retrieve user id from token
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
 
-      //Update post whit the new information provided
-      await this.prisma.publications.updateMany({
+    //Find the post to delete
+    const findPost = await this.prisma.posts.findFirst({
+      where: {
+        id: postId,
+        createdById: decodeToken.id,
+      },
+    });
+
+    //Validate if the post is from the user that wants to delete, and if the post exist
+    if (!findPost) {
+      throw new HttpException('The post dont exist', 200);
+    }
+
+    //Delete the post, and all the data relationed (images, and connections whit categories and tags)
+    await this.prisma.$transaction([
+      this.prisma.image.deleteMany({
         where: {
-          id: publication.id,
-          createdById: decodeToken.id,
+          postId: postId,
         },
-        data: {
-          title: publication.title,
-          description: publication.description,
-          country: publication.country,
-          city: publication.city,
-          current_condition: publication.currentCondition,
-          reserved: publication.reserved,
-        },
-      });
+      }),
 
-      return 'Post edited successfully';
-    } catch (e) {
-      // Log errors
-      console.error('Error in loginUser:', e);
-
-      // Handle errors
-      if (e instanceof HttpException) {
-        throw e;
-      } else {
-        throw new HttpException('Internal Server Error', 500);
-      }
-    }
-  }
-
-  async deletePublication(publicationId: number, req: Request) {
-    try {
-      //Retrieve user id from token
-      const token = req.headers.authorization.split(' ')[1];
-      const decodeToken = jwt.decode(token) as DecodeDto;
-
-      //Find the publication to delete
-      const findPublication = await this.prisma.publications.findFirst({
+      this.prisma.posts.delete({
         where: {
-          id: publicationId,
-          createdById: decodeToken.id,
+          id: postId,
         },
-      });
+      }),
+    ]);
 
-      //Validate if the post is from the user that wants to delete, and if the post exist
-      if (!findPublication) {
-        throw new HttpException('The publication dont exist', 200);
-      }
-
-      //Delete the post, and all the data relationed (images, and connections whit categories and tags)
-      await this.prisma.$transaction([
-        this.prisma.image.deleteMany({
-          where: {
-            publicationId: publicationId,
-          },
-        }),
-
-        this.prisma.publications.delete({
-          where: {
-            id: publicationId,
-          },
-        }),
-      ]);
-
-      return 'Post deleted successfully';
-    } catch (e) {
-      // Log errors
-      console.error('Error in loginUser:', e);
-
-      // Handle errors
-      if (e instanceof HttpException) {
-        throw e;
-      } else {
-        throw new HttpException('Internal Server Error', 500);
-      }
-    }
+    return res.status(HttpStatus.OK).json('Post deleted successfully');
   }
 
-  async updateLikes(publicationId: number, req: Request) {
+  async updateLikes(postId: string, req: Request, res: Response) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     const like = await this.prisma.likes.findFirst({
       where: {
         userId: decodeToken.id,
-        publicationId,
+        postId,
       },
     });
 
     if (like) {
-      const updateLike = await this.prisma.likes.update({
+      await this.prisma.likes.delete({
         where: { id: like.id },
-        data: { liked: !like.liked },
-        select: {
-          liked: true,
-          publication: {
-            select: {
-              createdBy: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
       });
-
-      if (updateLike.liked) {
-        await this.prisma.users.update({
-          where: { id: updateLike.publication.createdBy.id },
-          data: { totalLikes: { increment: 1 } },
-        });
-      } else {
-        await this.prisma.users.update({
-          where: { id: updateLike.publication.createdBy.id },
-          data: { totalLikes: { decrement: 1 } },
-        });
-      }
     } else {
       const createLike = await this.prisma.likes.create({
         data: {
-          publicationId,
+          postId,
           userId: decodeToken.id,
-          liked: true,
         },
         select: {
-          publication: {
+          post: {
             select: {
               createdBy: {
                 select: {
@@ -233,24 +245,117 @@ export class PostsService {
         },
       });
 
-      await this.prisma.users.update({
-        where: { id: createLike.publication.createdBy.id },
-        data: { totalLikes: { increment: 1 } },
-      });
+      // create the notification payload
+      const notificationPayload: NotificationPayload = {
+        userId: createLike.post.createdBy.id,
+        fromUserId: decodeToken.id,
+        type: 'like',
+        content: NotificationType.LIKE,
+        relatedPostId: postId,
+      };
+
+      await this.notificationService.createNotification(notificationPayload, res);
     }
 
-    return true;
+    return res.status(HttpStatus.OK).json(true);
   }
 
-  async addView(publicationId: number, req: Request) {
+  async addView(postId: string, req: Request) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
     await this.prisma.view.create({
       data: {
-        publicationId,
+        postId,
         userId: decodeToken.id,
       },
     });
+  }
+
+  async saveOrUnsavePost(postId: string, req: Request, res: Response) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    const savedPost = await this.prisma.savedPosts.findFirst({
+      where: {
+        postId,
+        userId: decodeToken.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!savedPost) {
+      
+      await this.prisma.savedPosts.create({
+        data: {
+          postId,
+          userId: decodeToken.id,
+        },
+      });
+
+      return res.status(HttpStatus.CREATED).json('Post saved');
+    }
+
+    await this.prisma.savedPosts.delete({
+      where: {
+        id: savedPost.id,
+      },
+    });
+
+    return res.status(HttpStatus.OK).json('Post unsaved');
+  }
+
+  async addComment(postId: string, comment: string, req: Request, res: Response) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    // save the comment in the database
+    const createdComment = await this.prisma.comments.create({
+      data: {
+        postId,
+        userId: decodeToken.id,
+        content: comment,
+      },
+      select: {
+        post: {
+          select: {
+            createdBy: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // create the notification payload
+    const notificationPayload: NotificationPayload = {
+      userId: createdComment.post.createdBy.id,
+      fromUserId: decodeToken.id,
+      type: 'comment',
+      relatedPostId: postId,
+      content: NotificationType.COMMENT,
+    };
+
+    await this.notificationService.createNotification(notificationPayload, res);
+
+    return res.status(HttpStatus.CREATED).json(createdComment);
+  }
+
+  async deleteComment(commentId: string, req:Request, res: Response) {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodeToken = jwt.decode(token) as DecodeDto;
+
+    await this.prisma.comments.delete({
+      where: {
+        id: commentId,
+        userId: decodeToken.id,
+      },
+    });
+
+    return res.status(HttpStatus.OK).json('Comment deleted successfully');
   }
 }

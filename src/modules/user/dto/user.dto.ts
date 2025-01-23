@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
@@ -5,7 +6,7 @@ import {
   IsEmail,
   IsInt,
 } from 'class-validator';
-import { UserRegisterDto } from 'src/auth/dto/auth.dto';
+import { UserRegisterDto } from 'src/modules/auth/dto/auth.dto';
 
 export class ChangeDto {
   @IsOptional()
@@ -22,14 +23,17 @@ export class ChangeDto {
 }
 
 export class ChangeSensitiveInformationDto {
+  @ApiProperty({description: 'User password'})
   @IsNotEmpty()
   @IsString()
   password: string;
 
+  @ApiProperty({description: 'User email'})
   @IsOptional()
   @IsEmail()
   email?: string;
 
+  @ApiProperty({description: 'User new password'})
   @IsOptional()
   @IsString()
   newPassword?: string;
@@ -37,7 +41,7 @@ export class ChangeSensitiveInformationDto {
 
 export class DecodeDto {
   @IsInt()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()

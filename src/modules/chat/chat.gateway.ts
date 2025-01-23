@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import { JwtChatGuard } from 'src/auth/guards/jwt-chat.guard';
+import { JwtChatGuard } from 'src/modules/auth/guards/jwt-chat.guard';
 import { DecodeDto } from '../user/dto/user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';

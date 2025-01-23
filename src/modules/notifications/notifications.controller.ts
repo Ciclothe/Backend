@@ -6,50 +6,59 @@ import {
   Post,
   Put,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Request } from 'express';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { DecodeDto } from 'src/modules/user/dto/user.dto';
+import { ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
 
 @Controller('notifications')
 export class NotificationsController {
   constructor(private notificationsService: NotificationsService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  createNotification(@Body() notificationMessage: string, @Req() req: Request) {
-    // Retrieve user id from token
-    const token = req.headers.authorization.split(' ')[1];
-    const decodeToken = jwt.decode(token) as DecodeDto;
+  // @UseGuards(JwtAuthGuard)
+  // @Post()
+  // @ApiOperation({ summary: 'Create notification' })
+  // @ApiBody({ type: String })
+  // createNotification(@Body("notificationMessage") notificationMessage: string, @Req() req: Request) {
+  //   // Retrieve user id from token
+  //   const token = req.headers.authorization.split(' ')[1];
+  //   const decodeToken = jwt.decode(token) as DecodeDto;
 
-    return this.notificationsService.createNotification(
-      notificationMessage,
-      decodeToken.id,
-    );
-  }
+  //   return this.notificationsService.createNotification(
+  //     notificationMessage,
+  //     decodeToken.id,
+  //   );
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  getNotifications(@Req() req: Request) {
+  @ApiOperation({ summary: 'Get notifications' })
+  getNotifications(@Req() req: Request, @Res() res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
-
-    return this.notificationsService.getNotifications(decodeToken.id);
+    console.log(decodeToken.id);
+    return this.notificationsService.getNotifications(decodeToken.id, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put()
-  updateNotification(@Body() notificationId: number) {
+  @ApiOperation({ summary: 'Update notification' })
+  @ApiBody({ type: String })
+  updateNotification(@Body() notificationId: string) {
     return this.notificationsService.markAsRead(notificationId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete()
-  deleteNotification(@Body() notificationId: number) {
+  @ApiOperation({ summary: 'Delete notification' })
+  @ApiBody({ type: String })
+  deleteNotification(@Body() notificationId: string) {
     return this.notificationsService.deleteNotification(notificationId);
   }
 }

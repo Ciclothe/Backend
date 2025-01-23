@@ -2,79 +2,149 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
+  Param,
   Patch,
   Post,
   Req,
-  UploadedFiles,
+  Res,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { EditPublicationDto, PostDetailsDto, PublicationDto} from './dto/posts.dto';
-import { Request } from 'express';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import * as path from 'path';
+import { EditPostDto, PostDetailsDto } from './dto/posts.dto';
+import { Request, Response } from 'express';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { ApiBody, ApiOperation } from '@nestjs/swagger';
 
 @Controller('posts')
 export class PostsController {
   constructor(private postService: PostsService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  @ApiOperation({ summary: 'Get post by id' })
+  getPostById(@Param('id') id: string) {
+    return this.postService.getPostById(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create a post' })
   @Post()
-  createPost(
-    @Body()
-    postDetails: PostDetailsDto,
+  async createPost(
+    @Body() postDetails: PostDetailsDto,
     @Req() req: Request,
+    @Res() res: Response,
   ) {
-
-    const categories: string[] = [postDetails.categories.genre.name, postDetails.categories.type.name, postDetails.categories.category.name]
-   
-    const publication: PublicationDto = {
-      title : postDetails.description.title,
-      categories,
-      city: postDetails.description.location.city,
-      country: postDetails.description.location.country,
-      currentCondition: postDetails.condition,
-      description: postDetails.description.description,
-      gender: postDetails.categories.genre.name,
-      brand: postDetails.description.brand,
-      primary_color: postDetails.description.color,
-      size: postDetails.description.size,
-      tags: postDetails.description.tags,
-      usageTime: postDetails.description.usageTime,
-      media: postDetails.media.map((img) => img.base64)
-    };
-
-    return this.postService.createPost(publication, req);
+    return this.postService.createPost(postDetails, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch()
-  editPost(@Body() publication: EditPublicationDto, @Req() req: Request) {
-    return this.postService.updatePost(publication, req);
+  @ApiOperation({ summary: 'Edit post' })
+  editPost(
+    @Body() post: EditPostDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.postService.updatePost(post, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete()
+  @ApiOperation({ summary: 'Delete post' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { postId: { type: 'string' } },
+    },
+  })
   deletePost(
-    @Body('publicationId') publicationId: number,
+    @Body('postId') postId: string,
     @Req() req: Request,
+    @Res() res: Response,
   ) {
-    return this.postService.deletePublication(publicationId, req);
+    return this.postService.deletePost(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('likes')
-  updateLikes(@Req() req: Request, @Body() publicationId: number) {
-    return this.postService.updateLikes(publicationId, req);
+  @Patch('like')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { postId: { type: 'string' } },
+    },
+  })
+  @ApiOperation({ summary: 'Add a like to a post' })
+  updateLikes(
+    @Req() req: Request,
+    @Body('postId') postId: string,
+    @Res() res: Response,
+  ) {
+    return this.postService.updateLikes(postId, req, res);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('views')
-  addView(@Req() req: Request, @Body() publicationId: number) {
-    return this.postService.addView(publicationId, req);
+  @ApiOperation({ summary: 'Add a view to a post' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { postId: { type: 'string' } },
+    },
+  })
+  addView(@Req() req: Request, @Body() postId: string) {
+    return this.postService.addView(postId, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('save')
+  @ApiOperation({ summary: 'Save or unsave a post' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { postId: { type: 'string' } },
+    },
+  })
+  saveOrUnsavePost(
+    @Req() req: Request,
+    @Body() postId: string,
+    @Res() res: Response,
+  ) {
+    return this.postService.saveOrUnsavePost(postId, req, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('comment')
+  @ApiOperation({ summary: 'Add a comment to a post' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        postId: { type: 'string' },
+        comment: { type: 'string' },
+      },
+    },
+  })
+  addComment(
+    @Req() req: Request,
+    @Body('postId') postId: string,
+    @Body('comment') comment: string,
+    @Res() res: Response,
+  ) {
+    return this.postService.addComment(postId, comment, req, res);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('comment')
+  @ApiOperation({ summary: 'Delete a comment' })
+  @ApiBody({
+    schema: { type: 'object', properties: { commentId: { type: 'string' } } },
+  })
+  deleteComment(
+    @Req() req: Request,
+    @Body() commentId: string,
+    @Res() res: Response,
+  ) {
+    return this.postService.deleteComment(commentId, req, res);
   }
 }

@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `users` ADD COLUMN `totalLikes` INTEGER NOT NULL DEFAULT 0;

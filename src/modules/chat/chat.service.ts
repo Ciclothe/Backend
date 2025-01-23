@@ -1,42 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import { DecodeDto } from '../user/dto/user.dto';
 import * as jwt from 'jsonwebtoken';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class ChatService {
   constructor(private prisma: PrismaService) {}
 
   async findUserChats(req: Request) {
-    try {
+    
       const token = req.headers.authorization.split(' ')[1];
       const decodeToken = jwt.decode(token) as DecodeDto;
 
-      // Verifica que el token se haya decodificado correctamente
-      if (!decodeToken || !decodeToken.id) {
-        throw new Error('Invalid token');
-      }
-
-      const userId = decodeToken.id;
-
       const chatRooms = await this.prisma.chatRoom.findMany({
         where: {
-          OR: [{ senderId: userId }, { recipientId: userId }],
+          OR: [{ senderId: decodeToken.id }, { recipientId: decodeToken.id }],
         },
         include: {
           sender: {
             select: {
               id: true,
               userName: true,
-              profilePhoto: true,
+              profilePicture: true,
             },
           },
           recipient: {
             select: {
               id: true,
               userName: true,
-              profilePhoto: true,
+              profilePicture: true,
             },
           },
           messages: {
@@ -55,14 +48,14 @@ export class ChatService {
       return chatRooms.map((chatRoom) => {
         const lastMessage = chatRoom.messages[0] || null;
         const otherUser =
-          chatRoom.senderId === userId ? chatRoom.recipient : chatRoom.sender;
+          chatRoom.senderId === decodeToken.id ? chatRoom.recipient : chatRoom.sender;
 
         return {
           chatRoomId: chatRoom.id,
           otherUser: {
             id: otherUser.id,
             userName: otherUser.userName,
-            profilePhoto: otherUser.profilePhoto,
+            profilePhoto: otherUser.profilePicture,
           },
           lastMessage: lastMessage
             ? {
@@ -72,13 +65,9 @@ export class ChatService {
             : null,
         };
       });
-    } catch (error) {
-      console.error('Error finding user chats:', error);
-      throw new Error('Could not find user chats');
-    }
   }
 
-  async getChatMessages(chatRoomId: number){
+  async getChatMessages(chatRoomId: string){
 
     return await this.prisma.messages.findMany({
       where:{
@@ -88,12 +77,12 @@ export class ChatService {
   }
 
   async findUserByName(userName: string) {
-    return this.prisma.users.findUnique({
+    return await this.prisma.users.findUnique({
       where: { userName },
     });
   }
 
-  async findOrCreateChatRoom(senderId: number, recipientId: number) {
+  async findOrCreateChatRoom(senderId: string, recipientId: string) {
     let chatRoom = await this.prisma.chatRoom.findFirst({
       where: {
         OR: [
@@ -115,8 +104,8 @@ export class ChatService {
     return chatRoom;
   }
 
-  async createMessage(content: string, sendById: number, chatRoomId: number, img?: string) {
-    return this.prisma.messages.create({
+  async createMessage(content: string, sendById: string, chatRoomId: string, img?: string) {
+    return await this.prisma.messages.create({
       data: {
         content,
         sendById,

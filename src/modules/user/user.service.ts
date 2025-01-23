@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Request } from 'express';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Request, Response } from 'express';
+import { PrismaService } from 'src/shared/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 import {
   ChangeDto,
@@ -8,12 +8,18 @@ import {
   DecodeDto,
 } from './dto/user.dto';
 import { compare, hash } from 'bcryptjs';
+import { InjectMinio } from 'src/shared/minio/minio.decorator';
+import * as Minio from 'minio';
+import { env } from 'process';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @InjectMinio() private readonly minioService: Minio.Client,
+  ) {}
 
-  async getUserName(req: Request) {
+  async getUserName(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -27,20 +33,15 @@ export class UserService {
         id: true,
         email: true,
         userName: true,
-        profilePhoto: true,
-        gender: true,
-        firstName: true,
-        lastName: true,
-        city: true,
-        country: true,
+        profilePicture: true,
       },
     });
 
     // Send user info to client
-    return userInfo;
+    return res.status(200).json(userInfo);
   }
 
-  async userInfo(req: Request) {
+  async userInfo(req: Request, res: Response) {
     // Retrieve user id from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -55,43 +56,61 @@ export class UserService {
         userName: true,
         email: true,
         accountCreatedAt: true,
-        profilePhoto: true,
-        firstName: true,
-        lastName: true,
+        profilePicture: true,
       },
     });
 
     // Send user info to client
-    return userInfo;
+    return res.status(200).json(userInfo);
   }
 
   async updateUserInfo(
     req: Request,
+    res: Response,
     infoToUpdate: ChangeDto,
     profilePhoto: Express.Multer.File,
   ) {
-    //Retrive user id from token
+    // Retrieve the user ID from the token
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 
-    //Update user information
-    const findUser = await this.prisma.users.updateMany({
+    const updateData: any = { ...infoToUpdate };
+
+    if (profilePhoto) {
+      // Generate a unique file name for the profile photo
+      const fileName = `${Date.now()}_${profilePhoto.originalname}`;
+
+      // Upload the profile photo to MinIO
+      await this.minioService.putObject(
+        env.MINIO_BUCKET,
+        fileName,
+        profilePhoto.buffer,
+        profilePhoto.size,
+        { 'Content-Type': profilePhoto.mimetype },
+      );
+
+      // Generate the URL for the uploaded profile photo
+      const profilePhotoUrl = `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/your-bucket-name/${fileName}`;
+      updateData.profilePicture = profilePhotoUrl;
+    }
+
+    // Update the user's information in the database
+    const updatedUser = await this.prisma.users.update({
       where: {
         id: decodedToken.id,
       },
-      data: {
-        userName: infoToUpdate.name,
-        profilePhoto: profilePhoto.originalname,
-        firstName: infoToUpdate.firstName,
-        lastName: infoToUpdate.lastName,
-      },
+      data: updateData,
     });
 
-    return findUser;
+    return res.status(200).json({
+      message: 'User information updated successfully.',
+      user: updatedUser,
+    });
   }
 
   async updateSesitiveUserInfo(
     req: Request,
+    res: Response,
     infoToUpdate: ChangeSensitiveInformationDto,
   ) {
     //Retrive user id from token
@@ -115,7 +134,6 @@ export class UserService {
       infoToUpdate.password,
       findUser.password,
     );
-    console.log(validatePassword);
 
     //Validate if they are the same password
     if (!validatePassword) {
@@ -147,10 +165,15 @@ export class UserService {
       },
     });
 
-    return updateUser;
+    return res.status(200).json(updateUser);
   }
 
-  async rating(req: Request, qualifiedUserId: number, rating: number) {
+  async rating(
+    req: Request,
+    res: Response,
+    qualifiedUserId: string,
+    rating: number,
+  ) {
     const token = req.headers.authorization.split(' ')[1];
     const decodedToken = jwt.decode(token) as DecodeDto;
 
@@ -187,6 +210,6 @@ export class UserService {
       },
     });
 
-    return newCalification;
+    return res.status(200).json(newCalification);
   }
 }
