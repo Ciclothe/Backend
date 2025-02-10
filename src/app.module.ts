@@ -16,6 +16,7 @@ import { ExploreModule } from './modules/explore/explore.module';
 import { SwipeModule } from './modules/swipe/swipe.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { MinioModule } from './shared/minio/minio.module';
+import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MinioModule } from './shared/minio/minio.module';
     ExploreModule,
     SwipeModule,
     MinioModule,
+    RedisModule,
   ],
   controllers: [],
   providers: [JwtStrategy],
