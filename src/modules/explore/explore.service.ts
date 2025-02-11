@@ -17,17 +17,14 @@ export class ExploreService {
   constructor(private prisma: PrismaService) {}
 
   async explore(req: Request, res: Response) {
-    // Retrieve user id from token
+    //Extract user ID from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
+    const userId = decodeToken.id;
 
-    // Fetch all posts excluding the ones created by the user
+    //Fetch all posts excluding those created by the user
     const allPosts = await this.prisma.posts.findMany({
-      where: {
-        NOT: {
-          createdById: decodeToken.id,
-        },
-      },
+      where: { NOT: { createdById: userId } },
       include: {
         tags: true,
         categories: true,
@@ -41,52 +38,48 @@ export class ExploreService {
             qualification: true,
           },
         },
-        _count: {
-          select: {
-            views: true,
-          },
-        },
+        _count: { select: { views: true } },
       },
     });
 
-    // Fetch user data including likes
-    const user = await this.prisma.users.findUnique({
-      where: { id: decodeToken.id },
-      select: { likes: true },
+    //Fetch the last 10 posts liked by the user
+    const userLikes = await this.prisma.likes.findMany({
+      where: { userId },
+      take: 10,
+      orderBy: { id: 'desc' },
+      select: { postId: true },
     });
 
-    if (user.likes.length >= 1) {
-      // Extract liked posts' categories concurrently
-      const categories: CategoriesDto[] = [];
-      await Promise.all(
-        user.likes.map(async (like) => {
-          const post = await this.prisma.posts.findUnique({
-            where: { id: like.postId },
-            select: { categories: true },
-          });
-          if (post) {
-            categories.push(...post.categories);
-          }
-        }),
-      );
+    //If the user has liked posts, generate recommendations
+    if (userLikes.length > 0) {
+      const likedPostIds = userLikes.map((like) => like.postId);
 
-      // Classify posts based on user preferences
-      const postSelected = postClasification(categories, allPosts);
+      // Fetch categories and tags of liked posts in a single query
+      const likedPosts = await this.prisma.posts.findMany({
+        where: { id: { in: likedPostIds } },
+        select: { categories: true, tags: true },
+      });
 
-      // Organize posts based on the algorithm's result
-      const postsOrdered = postSelected
-        .map((id) => allPosts.find((post) => post.id === id))
-        .filter((post) => post);
+      //Extract categories and tags from liked posts
+      const likedCategories = likedPosts.flatMap((post) => post.categories);
+      const likedTags = likedPosts.flatMap((post) => post.tags);
 
-      return res.status(200).json(postsOrdered);
+      // TODO: Classify posts based on categories and tags
+      // const postSelected
+
+      //return res.status(200).json(postSelected);
     } else {
-      // If no likes, order posts by the number of likes
+      // 7️If the user has no likes, order posts by number of likes
       allPosts.sort((a, b) => b.likes.length - a.likes.length);
       return res.status(200).json(allPosts);
     }
   }
 
-  async categorizedPosts(req: Request, categoriesParam: ParamsCategoryDto, res: Response) {
+  async categorizedPosts(
+    req: Request,
+    categoriesParam: ParamsCategoryDto,
+    res: Response,
+  ) {
     // Decode user ID from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
@@ -180,7 +173,11 @@ export class ExploreService {
     return res.status(200).json(postsOrdered);
   }
 
-  async filteredPosts(parameters: ParamsInterface, req: Request, res: Response) {
+  async filteredPosts(
+    parameters: ParamsInterface,
+    req: Request,
+    res: Response,
+  ) {
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
 
