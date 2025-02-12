@@ -1,8 +1,8 @@
 import { CategoriesDto } from 'src/modules/feed/dto/feed.dto';
 
-function contentBased(
+export function contentBased(
   likedCategories: CategoriesDto[],
-  likedTags: string[],
+  likedTags: CategoriesDto[],
   allPosts: any[],
 ) {
   return allPosts

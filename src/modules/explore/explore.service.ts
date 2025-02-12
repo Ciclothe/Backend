@@ -11,6 +11,7 @@ import { Request, Response } from 'express';
 import { postClasification } from 'src/shared/utils/postClasification';
 import { ParamsCategoryDto } from './dto/explore.dto';
 import { ParamsInterface } from './types/explore';
+import { contentBased } from 'src/shared/algorithms/contentBasedFiltering';
 
 @Injectable()
 export class ExploreService {
@@ -64,12 +65,13 @@ export class ExploreService {
       const likedCategories = likedPosts.flatMap((post) => post.categories);
       const likedTags = likedPosts.flatMap((post) => post.tags);
 
-      // TODO: Classify posts based on categories and tags
-      // const postSelected
+      const postSelected = contentBased(likedCategories, likedTags, allPosts);
+
+      return res.status(200).json(postSelected);
 
       //return res.status(200).json(postSelected);
     } else {
-      // 7️If the user has no likes, order posts by number of likes
+      // If the user has no likes, order posts by number of likes
       allPosts.sort((a, b) => b.likes.length - a.likes.length);
       return res.status(200).json(allPosts);
     }
@@ -83,64 +85,17 @@ export class ExploreService {
     // Decode user ID from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
+    const userId = decodeToken.id;
     const { category, subcategory } = categoriesParam;
 
     // Fetch posts that match the categories and exclude those created by the user
-    const posts = await this.prisma.posts.findMany({
+    const allPosts = await this.prisma.posts.findMany({
       where: {
         categories: {
           some: {
             OR: [{ name: category }, { name: subcategory }],
           },
         },
-        NOT: {
-          createdById: decodeToken.id,
-        },
-      },
-      select: {
-        id: true,
-        categories: true,
-      },
-    });
-
-    // Fetch user likes and extract liked post IDs
-    const userLikes = await this.prisma.users.findUnique({
-      where: { id: decodeToken.id },
-      select: {
-        likes: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-
-    const userLikedIds = userLikes?.likes.map((like) => like.id) || [];
-
-    // Fetch categories of liked posts in a single query
-    const likedCategories = await this.prisma.posts.findMany({
-      where: {
-        id: { in: userLikedIds },
-      },
-      select: {
-        categories: true,
-      },
-    });
-
-    // Flatten and deduplicate liked categories
-    const categories = likedCategories
-      .flatMap((post) => post.categories)
-      .filter(
-        (category, index, self) =>
-          index === self.findIndex((c) => c.id === category.id),
-      );
-
-    // Classify posts using the custom classification function
-    const postSelected = postClasification(categories, posts);
-
-    // Fetch all posts excluding those created by the user, with necessary details
-    const detailedPosts = await this.prisma.posts.findMany({
-      where: {
         NOT: {
           createdById: decodeToken.id,
         },
@@ -165,12 +120,38 @@ export class ExploreService {
       },
     });
 
-    // Organize posts based on classification results
-    const postsOrdered = postSelected
-      .map((id) => detailedPosts.find((post) => post.id === id))
-      .filter(Boolean); // Remove undefined results
+    //Fetch the last 10 posts liked by the user
+    const userLikes = await this.prisma.likes.findMany({
+      where: { userId },
+      take: 10,
+      orderBy: { id: 'desc' },
+      select: { postId: true },
+    });
 
-    return res.status(200).json(postsOrdered);
+    //If the user has liked posts, generate recommendations
+    if (userLikes.length > 0) {
+      const likedPostIds = userLikes.map((like) => like.postId);
+
+      // Fetch categories and tags of liked posts in a single query
+      const likedPosts = await this.prisma.posts.findMany({
+        where: { id: { in: likedPostIds } },
+        select: { categories: true, tags: true },
+      });
+
+      //Extract categories and tags from liked posts
+      const likedCategories = likedPosts.flatMap((post) => post.categories);
+      const likedTags = likedPosts.flatMap((post) => post.tags);
+
+      const postSelected = contentBased(likedCategories, likedTags, allPosts);
+
+      return res.status(200).json(postSelected);
+
+      //return res.status(200).json(postSelected);
+    } else {
+      // If the user has no likes, order posts by number of likes
+      allPosts.sort((a, b) => b.likes.length - a.likes.length);
+      return res.status(200).json(allPosts);
+    }
   }
 
   async filteredPosts(
