@@ -11,23 +11,20 @@ export class SwipeService {
   constructor(private prisma: PrismaService) {}
 
   async swipe(req: Request, res: Response) {
-    //Retrieve user id from token
+    // Retrieve user ID from token
     const token = req.headers.authorization.split(' ')[1];
     const decodeToken = jwt.decode(token) as DecodeDto;
     const userId = decodeToken.id;
 
-    //Retrieve all posts that the user has already slipped
-    const slippedPosts = await this.prisma.swipe.findMany({
-      where: {
-        userId: decodeToken.id,
-      },
-      select: {
-        postId: true,
-      },
-      orderBy: { id: 'desc' },
+    // Retrieve all posts that the user has already swiped
+    const swipedPosts = await this.prisma.swipe.findMany({
+      where: { userId },
+      select: { postId: true },
     });
 
-    //Fetch the last 10 posts liked by the user
+    const swipedPostIds = swipedPosts.map((swipe) => swipe.postId);
+
+    // Fetch the last 5 posts liked by the user
     const userLikes = await this.prisma.likes.findMany({
       where: { userId },
       take: 5,
@@ -35,15 +32,34 @@ export class SwipeService {
       select: { postId: true },
     });
 
-    //Retrieve all posts that the user has not slipped
-    const post = await this.prisma.posts.findMany({
-      where: {
-        NOT: {
-          id: {
-            in: slippedPosts.map((post) => post.postId),
-          },
-        },
-      },
+    const likedPostIds = userLikes.map((like) => like.postId);
+
+    // Fetch categories & tags of both liked and swiped posts in a single query
+    const interactionPosts = await this.prisma.posts.findMany({
+      where: { id: { in: [...likedPostIds, ...swipedPostIds] } },
+      select: { id: true, categories: true, tags: true },
+    });
+
+    // Separate categories & tags into liked and swiped
+    let likedCategories: CategoriesDto[] = [];
+    let likedTags: CategoriesDto[] = [];
+    let swipedCategories: CategoriesDto[] = [];
+    let swipedTags: CategoriesDto[] = [];
+
+    interactionPosts.forEach((post) => {
+      if (likedPostIds.includes(post.id)) {
+        likedCategories.push(...post.categories);
+        likedTags.push(...post.tags);
+      }
+      if (swipedPostIds.includes(post.id)) {
+        swipedCategories.push(...post.categories);
+        swipedTags.push(...post.tags);
+      }
+    });
+
+    // Fetch posts that the user hasn't swiped yet
+    const posts = await this.prisma.posts.findMany({
+      where: { id: { notIn: swipedPostIds } },
       include: {
         createdBy: {
           select: {
@@ -57,46 +73,16 @@ export class SwipeService {
       },
     });
 
-    let likedCategories: CategoriesDto[] = [];
-    let likedTags: CategoriesDto[] = [];
-    let swipedCategories: CategoriesDto[] = [];
-    let swipedTags: CategoriesDto[] = [];
-
-    if (userLikes.length >= 1) {
-      const likedPostIds = userLikes.map((like) => like.postId);
-
-      // Fetch categories and tags of liked posts in a single query
-      const likedPosts = await this.prisma.posts.findMany({
-        where: { id: { in: likedPostIds } },
-        select: { categories: true, tags: true },
-      });
-
-      likedCategories = likedPosts.flatMap((post) => post.categories);
-      likedTags = likedPosts.flatMap((post) => post.tags);
-    }
-
-    if (slippedPosts.length >= 1) {
-      const swipedPostIds = slippedPosts.map((post) => post.postId);
-
-      // Fetch categories and tags of liked posts in a single query
-      const swipedPosts = await this.prisma.posts.findMany({
-        where: { id: { in: swipedPostIds } },
-        select: { categories: true, tags: true },
-      });
-
-      swipedCategories = swipedPosts.flatMap((post) => post.categories);
-      swipedTags = swipedPosts.flatMap((post) => post.tags);
-    }
-
-    const rankedPost = swipeReco(
+    // Rank posts based on swipe recommendations
+    const rankedPosts = swipeReco(
       likedCategories,
       likedTags,
       swipedCategories,
       swipedTags,
-      post,
+      posts,
     );
 
-    return res.status(200).json(rankedPost);
+    return res.status(200).json(rankedPosts);
   }
 
   async swipeReaction(
