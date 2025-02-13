@@ -16,50 +16,44 @@ export class SwipeService {
     const decodeToken = jwt.decode(token) as DecodeDto;
     const userId = decodeToken.id;
 
-    // Retrieve all posts that the user has already swiped
-    const swipedPosts = await this.prisma.swipe.findMany({
+    // Retrieve posts the user has already swiped (split into liked & disliked)
+    const swipes = await this.prisma.swipe.findMany({
       where: { userId },
-      select: { postId: true },
+      select: { postId: true, reaction: true },
     });
 
-    const swipedPostIds = swipedPosts.map((swipe) => swipe.postId);
+    const likedPostIds = swipes
+      .filter((swipe) => swipe.reaction)
+      .map((swipe) => swipe.postId);
+    const dislikedPostIds = swipes
+      .filter((swipe) => !swipe.reaction)
+      .map((swipe) => swipe.postId);
 
-    // Fetch the last 5 posts liked by the user
-    const userLikes = await this.prisma.likes.findMany({
-      where: { userId },
-      take: 5,
-      orderBy: { id: 'desc' },
-      select: { postId: true },
-    });
-
-    const likedPostIds = userLikes.map((like) => like.postId);
-
-    // Fetch categories & tags of both liked and swiped posts in a single query
+    // Fetch categories & tags of liked/disliked posts in one query
     const interactionPosts = await this.prisma.posts.findMany({
-      where: { id: { in: [...likedPostIds, ...swipedPostIds] } },
+      where: { id: { in: [...likedPostIds, ...dislikedPostIds] } },
       select: { id: true, categories: true, tags: true },
     });
 
-    // Separate categories & tags into liked and swiped
     let likedCategories: CategoriesDto[] = [];
     let likedTags: CategoriesDto[] = [];
-    let swipedCategories: CategoriesDto[] = [];
-    let swipedTags: CategoriesDto[] = [];
+    let dislikedCategories: CategoriesDto[] = [];
+    let dislikedTags: CategoriesDto[] = [];
 
     interactionPosts.forEach((post) => {
       if (likedPostIds.includes(post.id)) {
         likedCategories.push(...post.categories);
         likedTags.push(...post.tags);
       }
-      if (swipedPostIds.includes(post.id)) {
-        swipedCategories.push(...post.categories);
-        swipedTags.push(...post.tags);
+      if (dislikedPostIds.includes(post.id)) {
+        dislikedCategories.push(...post.categories);
+        dislikedTags.push(...post.tags);
       }
     });
 
-    // Fetch posts that the user hasn't swiped yet
+    // Fetch new posts that the user hasn't swiped yet
     const posts = await this.prisma.posts.findMany({
-      where: { id: { notIn: swipedPostIds } },
+      where: { id: { notIn: [...likedPostIds, ...dislikedPostIds] } },
       include: {
         createdBy: {
           select: {
@@ -71,14 +65,15 @@ export class SwipeService {
         image: true,
         tags: true,
       },
+      take: 10, // Fetch extra posts for better ranking
     });
 
     // Rank posts based on swipe recommendations
     const rankedPosts = swipeReco(
       likedCategories,
       likedTags,
-      swipedCategories,
-      swipedTags,
+      dislikedCategories,
+      dislikedTags,
       posts,
     );
 

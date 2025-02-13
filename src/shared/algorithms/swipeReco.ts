@@ -3,42 +3,49 @@ import { CategoriesDto } from 'src/modules/feed/dto/feed.dto';
 export function swipeReco(
   likedCategories: CategoriesDto[],
   likedTags: CategoriesDto[],
-  swipedCategories: CategoriesDto[],
-  swipedTags: CategoriesDto[],
+  dislikedCategories: CategoriesDto[],
+  dislikedTags: CategoriesDto[],
   allPosts: any[],
 ) {
   return allPosts
     .map((post) => {
       let score = 0;
 
-      // Assign points based on category matches
+      //Give positive points if post matches liked categories
       if (
         post.categories.some((category) => likedCategories.includes(category))
       ) {
         score += 5;
       }
 
-      // Assign points based on swiped category matches
+      //Penalize posts if they match disliked categories
       if (
-        post.categories.forEach((category) =>
-          swipedCategories.includes(category),
+        post.categories.some((category) =>
+          dislikedCategories.includes(category),
         )
       ) {
-        score += 7;
+        score -= 5;
       }
 
-      // Assign points based on tag matches
+      // Give positive points if post matches liked tags
       if (post.tags.some((tag) => likedTags.includes(tag))) {
         score += 3;
       }
 
-      // Assign points based on swiped tag matches
-      if (post.tags.forEach((tag) => swipedTags.includes(tag))) {
-        score += 4;
+      //Penalize posts if they match disliked tags
+      if (post.tags.some((tag) => dislikedTags.includes(tag))) {
+        score -= 3;
       }
+
+      //Reduce the impact of old swipes to keep recommendations fresh
+      const decayFactor = 0.9;
+      const daysSincePosted =
+        (Date.now() - new Date(post.createdAt).getTime()) /
+        (1000 * 60 * 60 * 24);
+      score *= Math.pow(decayFactor, daysSincePosted);
 
       return { ...post, score };
     })
-    .sort((a, b) => b.score - a.score) // Sort posts by score in descending order
-    .slice(0, 5);
+    .sort((a, b) => b.score - a.score) // Sort posts by highest score
+    .slice(0, 5); // Return only top 5 posts
 }
